@@ -1,0 +1,2 @@
+module MercatorIcecat::MetadataHelper
+end
