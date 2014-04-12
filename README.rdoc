@@ -3,3 +3,5 @@
 This engines provides Icecat Import for the Mercator Guided Selling Application.
 
 This project uses the GPL V3 license. See file LICENSE in the same directory for details about the GPL V3.
+
+* Icecat Product: XY141ET corrupt Unicode Sequence

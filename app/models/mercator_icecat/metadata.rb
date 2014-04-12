@@ -1,3 +1,5 @@
+require 'saxerator'
+
 module MercatorIcecat
   class Metadata < ActiveRecord::Base
 
@@ -47,25 +49,30 @@ module MercatorIcecat
         file = File.open(Rails.root.join("vendor","catalogs",date.to_s + "-index.xml"), "r")
       end
 
-      products = Nokogiri::XML(file).xpath('//ICECAT-interface/files.index/file[@Supplier_id = "1"]') # Hewlett Packard => 1
-      products.each do |product|
-        metadata = self.find_or_create_by_product_id(product.attr("Product_ID"))
+      parser = Saxerator.parser(file) do |config|
+        config.put_attributes_in_hash!
+      end
 
-        if metadata.update(path:              product.attr("path"),
-                           cat_id:            product.attr("Catid"),
-                           product_id:        product.attr("Product_ID"),
-                           icecat_updated_at: product.attr("Updated"),
-                           quality:           product.attr("Quality"),
-                           supplier_id:       product.attr("Supplier_id"),
-                           prod_id:           product.attr("Prod_ID"),
-                           on_market:         product.attr("On_Market"),
-                           model_name:        product.attr("Model_Name"),
-                           product_view:      product.attr("Product_View"))
-          ::JobLogger.info("Metadata " +      product.attr("Product_ID") + " saved.")
+      # Hewlett Packard has Supplier_id = 1
+      parser.for_tag("file").with_attribute("Supplier_id", "1").each do |product|
+        metadata = self.find_or_create_by_icecat_product_id(product["Product_ID"])
+        mode = Time.now - metadata.created_at > 5 ? " updated." : " created."
+        if metadata.update(path:              product["path"],
+                           cat_id:            product["Catid"],
+                           icecat_product_id: product["Product_ID"],
+                           icecat_updated_at: product["Updated"],
+                           quality:           product["Quality"],
+                           supplier_id:       product["Supplier_id"],
+                           prod_id:           product["Prod_ID"],
+                           on_market:         product["On_Market"],
+                           model_name:        product["Model_Name"],
+                           product_view:      product["Product_View"])
+          ::JobLogger.info("Metadata " + product["Prod_ID"].to_s + mode)
         else
-          ::JobLogger.error("Metadata " + product.attr("Product_ID") + " could not be saved: " + metadata.errors.first )
+          ::JobLogger.error("Metadata " + product["Prod_ID"].to_s + " could not be saved: " + metadata.errors.first )
         end
       end
+      file.close
     end
   end
 end
