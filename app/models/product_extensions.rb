@@ -3,10 +3,10 @@ module ProductExtensions
   extend ActiveSupport::Concern
 
   included do
-    has_many :icecat_metadatas, :class_name => "MercatorIcecat::Metadata",
+    has_many :icecat_metadata, :class_name => "MercatorIcecat::Metadatum",
              foreign_key: :product_id, primary_key: :id, inverse_of: :product
 
-    scope :without_icecat_metadata, -> { includes(:icecat_metadatas ).where( icecat_metadatas: { product_id: nil } ) }
+    scope :without_icecat_metadata, -> { includes(:icecat_metadata ).where( icecat_metadata: { product_id: nil } ) }
   end
 
   # --- Instance Methods --- #
