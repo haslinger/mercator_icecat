@@ -1,5 +1,5 @@
 module MercatorIcecat
-  class MetadataController < ApplicationController
+  class MetadataController < MercatorIcecat::ApplicationController
 
     hobo_model_controller
     auto_actions :all
