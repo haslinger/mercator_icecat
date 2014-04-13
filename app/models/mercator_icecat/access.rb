@@ -14,6 +14,8 @@ module MercatorIcecat
     FULL_INDEX_URL = BASE_URL + "/export/freexml/files.index.xml"
     DAILY_INDEX_URL = BASE_URL + "/export/freexml/daily.index.xml"
 
+    # --- Class Methods --- #
+
     def self.open_uri_options
       {:http_basic_authentication => [USER, PASSWORD]}
     end
@@ -35,7 +37,7 @@ module MercatorIcecat
 
     def self.product(product_id: nil, path: nil) # accepts product_id or path as parameter
       return open(self.product_url(product_id), open_uri_options).read if product_id
-      return open(self.base_uri + "/" + path, open_uri_options).read if path
+      return open(BASE_URL + "/" + path, open_uri_options).read if path
     end
 
     def self.product_url(product_id: nil)

@@ -16,4 +16,9 @@ module ProductExtensions
     self.number =~ /^HP-(.+)$/
     $1 || self.number
   end
+
+  def icecat_vendor
+    self.article_number =~ /^HP-(.+)$/
+    $1 ? "1" : nil
+  end
 end

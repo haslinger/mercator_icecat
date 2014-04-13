@@ -1,4 +1,5 @@
 require 'saxerator'
+require 'open-uri'
 
 module MercatorIcecat
   class Metadata < ActiveRecord::Base
@@ -41,6 +42,8 @@ module MercatorIcecat
     def view_permitted?(field)
       true
     end
+
+    # --- Class Methods --- #
 
     def self.import(full: false, date: Date.today)
       if full
@@ -96,6 +99,33 @@ module MercatorIcecat
 
       products = Product.without_icecat_metadata
       ::JobLogger.warn(products.count.to_s + " products without metadata.")
+    end
+
+    def self.download
+      metadatas = self.where{ product_id != nil }
+      metadatas.each do |metadata|
+        if metadata.download
+          ::JobLogger.info("XML Metadata " + metadata.prod_id.to_s + " downloaded.")
+        else
+          ::JobLogger.info("XML Metadata " + metadata.prod_id.to_s + " exists (no overwrite)!")
+        end
+      end
+    end
+
+    # --- Instance Methods --- #
+
+    def download(overwrite: false)
+      unless overwrite
+        return false if File.exist?(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml"))
+      end
+      io = open(Access::BASE_URL + "/" + self.path, Access.open_uri_options).read if self.path
+      file = File.new(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml"), "w")
+      io.each_line do |line|
+        # unpack.pack fixes: Encoding::UndefinedConversionError: "\xC3" from ASCII-8BIT to UTF-8
+        file.write line.unpack('U*').pack('U*')
+      end
+      file.close
+      return true
     end
   end
 end
