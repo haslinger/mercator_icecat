@@ -11,7 +11,7 @@ module MercatorIcecat
       quality           :string
       supplier_id       :string
       icecat_product_id :string
-      prod_id           :string
+      prod_id           :string, :index => true
       product_number    :string
       cat_id            :string
       on_market         :string
@@ -73,6 +73,29 @@ module MercatorIcecat
         end
       end
       file.close
+    end
+
+    def self.assign_products(only_missing: true)
+      if only_missing
+        products = Product.without_icecat_metadata
+        ::JobLogger.warn(products.count.to_s + " products without metadata.")
+      else
+        products = Product.all
+      end
+
+      products.each do |product|
+        metadatas = self.where(prod_id: product.icecat_article_number)
+        metadatas.each do |metadata|
+          if metadata.update(product_id: product.id)
+            ::JobLogger.info("Product " + product.number.to_s + " assigned to " + metadata.id.to_s)
+          else
+            ::JobLogger.error("Product " + product.number.to_s + " assigned to " + metadata.id.to_s)
+          end
+        end
+      end
+
+      products = Product.without_icecat_metadata
+      ::JobLogger.warn(products.count.to_s + " products without metadata.")
     end
   end
 end
