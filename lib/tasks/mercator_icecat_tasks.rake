@@ -8,7 +8,7 @@ namespace :icecat do
 
       ::JobLogger.info("=" * 50)
       ::JobLogger.info("Started Job: icecat:metadata:import_daily")
-      MercatorIcecat::Metadata.import(date: Date.today)
+      MercatorIcecat::Metadatum.import(date: Date.today)
       ::JobLogger.info("Finished Job: icecat:metadata:import_daily")
       ::JobLogger.info("=" * 50)
     end
@@ -20,7 +20,7 @@ namespace :icecat do
 
       ::JobLogger.info("=" * 50)
       ::JobLogger.info("Started Job: icecat:metadata:import_full")
-      MercatorIcecat::Metadata.import(full: true)
+      MercatorIcecat::Metadatum.import(full: true)
       ::JobLogger.info("Finished Job: icecat:metadata:import_full")
       ::JobLogger.info("=" * 50)
     end
@@ -32,7 +32,7 @@ namespace :icecat do
 
       ::JobLogger.info("=" * 50)
       ::JobLogger.info("Started Job: icecat:metadata:assign_products")
-      MercatorIcecat::Metadata.assign_products(only_missing: true)
+      MercatorIcecat::Metadatum.assign_products(only_missing: true)
       ::JobLogger.info("Finished Job: icecat:metadata:assign_products")
       ::JobLogger.info("=" * 50)
     end
@@ -44,7 +44,7 @@ namespace :icecat do
 
       ::JobLogger.info("=" * 50)
       ::JobLogger.info("Started Job: icecat:metadata:download_xml")
-      MercatorIcecat::Metadata.download
+      MercatorIcecat::Metadatum.download
       ::JobLogger.info("Finished Job: icecat:metadata:download_xml")
       ::JobLogger.info("=" * 50)
     end
