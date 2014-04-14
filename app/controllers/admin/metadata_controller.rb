@@ -8,6 +8,6 @@ class Admin::MetadataController < Admin::AdminSiteController
     mercator_icecat_metadata
   end
 
-  hobo_model_controller
+  include Hobo::Controller::Model
   auto_actions :all
 end
