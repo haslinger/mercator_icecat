@@ -16,4 +16,5 @@ Gem::Specification.new do |s|
 
   s.add_dependency "rails", "~> 4.0.3"
   s.add_dependency "saxerator"
+  s.add_dependency "try_to"
 end

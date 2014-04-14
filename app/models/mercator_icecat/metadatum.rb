@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require 'saxerator'
 require 'open-uri'
 
@@ -112,6 +114,15 @@ module MercatorIcecat
       end
     end
 
+    def self.update_products
+      metadata = self.where{ product_id != nil }
+      metadata.each do |metadatum|
+        metadatum.update_product
+      end
+
+      # self.find(99883).update_product
+    end
+
     # --- Instance Methods --- #
 
     def download(overwrite: false)
@@ -121,32 +132,60 @@ module MercatorIcecat
       io = open(Access::BASE_URL + "/" + self.path, Access.open_uri_options).read if self.path
       file = File.new(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml"), "w")
       io.each_line do |line|
-        # unpack.pack fixes: Encoding::UndefinedConversionError: "\xC3" from ASCII-8BIT to UTF-8
-        file.write line.unpack('U*').pack('U*')
+        # encode fixes: Encoding::UndefinedConversionError: "\xC3" from ASCII-8BIT to UTF-8
+        file.write line.encode("UTF-8", :invalid => :replace, :undef => :replace, :replace => "")
       end
       file.close
-      io.close
       return true
     end
 
-    def import
+    def update_product
       # :en => lang_id = 1, :de => lang_id = 4
       file = open(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml")).read
-      nodeset = Nokogiri::XML(file).xpath("//ICECAT-interface/Product")[0]
+      product_nodeset = Nokogiri::XML(file).xpath("//ICECAT-interface/Product")[0]
       product = self.product
 
-      product.update(title_de: nodeset["Title"],
-                     title_en: nodeset["Title"],
-                     description_de: nodeset.xpath("//ProductDescription[@langid='4']")[0]["ShortDesc"],
-                     description_en: nodeset.xpath("//ProductDescription[@langid='1']")[0]["ShortDesc"],
-                     long_description_de: nodeset.xpath("//ProductDescription[@langid='4']")[0]["LongDesc"],
-                     long_description_en: nodeset.xpath("//ProductDescription[@langid='1']")[0]["LongDesc"],
-                     warranty_de: nodeset.xpath("//ProductDescription[@langid='4']")[0]["WarrantyInfo"],
-                     warranty_en: nodeset.xpath("//ProductDescription[@langid='1']")[0]["WarrantyInfo"])
+      description_de = try_to { product_nodeset.xpath("ProductDescription[@langid='4']")[0]["ShortDesc"] }
+      description_en = try_to { product_nodeset.xpath("ProductDescription[@langid='1']")[0]["ShortDesc"] }
+      long_description_de = try_to { product_nodeset.xpath("ProductDescription[@langid='4']")[0]["LongDesc"] }
+      long_description_en = try_to { product_nodeset.xpath("ProductDescription[@langid='1']")[0]["LongDesc"] }
+      warranty_de = try_to { product_nodeset.xpath("ProductDescription[@langid='4']")[0]["WarrantyInfo"] }
+      warranty_en = try_to { product_nodeset.xpath("ProductDescription[@langid='1']")[0]["WarrantyInfo"] }
 
-      debugger
+      product.update(# title_de: product_nodeset["Title"],
+                     # title_en: product_nodeset["Title"],
+                     description_de: description_de,
+                     description_en: description_en,
+                     long_description_de: long_description_de,
+                     long_description_en: long_description_en,
+                     warranty_de: warranty_de,
+                     warranty_en: warranty_en)
 
-      file.close
+
+      property_groups_nodeset = product_nodeset.xpath("CategoryFeatureGroup")
+      property_groups_nodeset.each do |property_group_nodeset|
+        icecat_id = property_group_nodeset["ID"]
+        name_en = try_to { property_group_nodeset.xpath("FeatureGroup/Name[@langid='1']")[0]["Value"] }
+        name_de = try_to { property_group_nodeset.xpath("FeatureGroup/Name[@langid='4']")[0]["Value"] }
+        name_de ||= name_en
+        property_group = ::PropertyGroup.find_by_name_de(name_de)
+        unless property_group
+          property_group = ::PropertyGroup.new(icecat_id: icecat_id,
+                                               name_de: name_de,
+                                               name_en: name_en,
+                                               position: icecat_id) # no better idea ...
+          if property_group.save
+            ::JobLogger.info("PropertyGroup " + icecat_id.to_s + " created.")
+          else
+            ::JobLogger.error("PropertyGroup " + icecat_id.to_s + " could not be created: " + property_group.errors.first.to_s)
+          end
+        end
+      end
+
+      product.features.destroy_all
+
+      features_nodeset = product_nodeset.xpath("ProductFeature")
+      ::JobLogger.info("Metadata " + id.to_s + " updated Product " + product_id.to_s)
     end
   end
 end
