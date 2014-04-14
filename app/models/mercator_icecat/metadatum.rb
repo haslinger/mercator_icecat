@@ -125,7 +125,28 @@ module MercatorIcecat
         file.write line.unpack('U*').pack('U*')
       end
       file.close
+      io.close
       return true
+    end
+
+    def import
+      # :en => lang_id = 1, :de => lang_id = 4
+      file = open(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml")).read
+      nodeset = Nokogiri::XML(file).xpath("//ICECAT-interface/Product")[0]
+      product = self.product
+
+      product.update(title_de: nodeset["Title"],
+                     title_en: nodeset["Title"],
+                     description_de: nodeset.xpath("//ProductDescription[@langid='4']")[0]["ShortDesc"],
+                     description_en: nodeset.xpath("//ProductDescription[@langid='1']")[0]["ShortDesc"],
+                     long_description_de: nodeset.xpath("//ProductDescription[@langid='4']")[0]["LongDesc"],
+                     long_description_en: nodeset.xpath("//ProductDescription[@langid='1']")[0]["LongDesc"],
+                     warranty_de: nodeset.xpath("//ProductDescription[@langid='4']")[0]["WarrantyInfo"],
+                     warranty_en: nodeset.xpath("//ProductDescription[@langid='1']")[0]["WarrantyInfo"])
+
+      debugger
+
+      file.close
     end
   end
 end

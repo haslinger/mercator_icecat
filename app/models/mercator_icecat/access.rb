@@ -33,6 +33,7 @@ module MercatorIcecat
         file.write line
       end
       file.close
+      io.close
     end
 
     def self.product(product_id: nil, path: nil) # accepts product_id or path as parameter
