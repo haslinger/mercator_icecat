@@ -49,6 +49,18 @@ namespace :icecat do
       ::JobLogger.info("=" * 50)
     end
 
+    # starten als: 'bundle exec rake icecat:metadata:download_and_overwrite_xml'
+    # in Produktivumgebungen: 'bundle exec rake icecat:metadata:download_and_overwrite_xml RAILS_ENV=production'
+    desc 'Import all relevant XML files '
+    task :download_and_overwrite_xml => :environment do
+
+      ::JobLogger.info("=" * 50)
+      ::JobLogger.info("Started Job: icecat:metadata:download_and_overwrite_xml")
+      MercatorIcecat::Metadatum.download(overwrite: true)
+      ::JobLogger.info("Finished Job: icecat:metadata:download_and_overwrite_xml")
+      ::JobLogger.info("=" * 50)
+    end
+
     # starten als: 'bundle exec rake icecat:metadata:update_products'
     # in Produktivumgebungen: 'bundle exec rake icecat:metadata:update_products RAILS_ENV=production'
     desc 'Update all products from downloaded XML files.'

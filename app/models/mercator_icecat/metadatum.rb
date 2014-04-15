@@ -103,10 +103,10 @@ module MercatorIcecat
       ::JobLogger.warn(products.count.to_s + " products without metadata.")
     end
 
-    def self.download
+    def self.download(overwrite: false)
       metadata = self.where{ product_id != nil }
       metadata.each do |metadatum|
-        if metadatum.download
+        if metadatum.download(overwrite: overwrite)
           ::JobLogger.info("XML Metadatum " + metadatum.prod_id.to_s + " downloaded.")
         else
           ::JobLogger.info("XML Metadatum " + metadatum.prod_id.to_s + " exists (no overwrite)!")
