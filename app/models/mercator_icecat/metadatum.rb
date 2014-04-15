@@ -2,6 +2,7 @@
 
 require 'saxerator'
 require 'open-uri'
+require 'string_extensions'
 
 module MercatorIcecat
   class Metadatum < ActiveRecord::Base
@@ -148,15 +149,17 @@ module MercatorIcecat
     def update_product
       # :en => lang_id = 1, :de => lang_id = 4
       file = open(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml")).read
+      # getting rid of invalid unicode characters
+      file
       product_nodeset = Nokogiri::XML(file).xpath("//ICECAT-interface/Product")[0]
       product = self.product
 
-      description_de = try_to { product_nodeset.xpath("ProductDescription[@langid='4']")[0]["ShortDesc"] }
-      description_en = try_to { product_nodeset.xpath("ProductDescription[@langid='1']")[0]["ShortDesc"] }
-      long_description_de = try_to { product_nodeset.xpath("ProductDescription[@langid='4']")[0]["LongDesc"] }
-      long_description_en = try_to { product_nodeset.xpath("ProductDescription[@langid='1']")[0]["LongDesc"] }
-      warranty_de = try_to { product_nodeset.xpath("ProductDescription[@langid='4']")[0]["WarrantyInfo"] }
-      warranty_en = try_to { product_nodeset.xpath("ProductDescription[@langid='1']")[0]["WarrantyInfo"] }
+      description_de = try_to { product_nodeset.xpath("ProductDescription[@langid='4']")[0]["ShortDesc"].fix_utf8 }
+      description_en = try_to { product_nodeset.xpath("ProductDescription[@langid='1']")[0]["ShortDesc"].fix_utf8 }
+      long_description_de = try_to { product_nodeset.xpath("ProductDescription[@langid='4']")[0]["LongDesc"].fix_utf8 }
+      long_description_en = try_to { product_nodeset.xpath("ProductDescription[@langid='1']")[0]["LongDesc"].fix_utf8 }
+      warranty_de = try_to { product_nodeset.xpath("ProductDescription[@langid='4']")[0]["WarrantyInfo"].fix_utf8 }
+      warranty_en = try_to { product_nodeset.xpath("ProductDescription[@langid='1']")[0]["WarrantyInfo"].fix_utf8 }
 
       product.update(# title_de: product_nodeset["Title"],
                      # title_en: product_nodeset["Title"],
@@ -167,12 +170,11 @@ module MercatorIcecat
                      warranty_de: warranty_de,
                      warranty_en: warranty_en)
 
-
       property_groups_nodeset = product_nodeset.xpath("CategoryFeatureGroup")
       property_groups_nodeset.each do |property_group_nodeset|
         icecat_id = property_group_nodeset["ID"]
-        name_en = try_to { property_group_nodeset.xpath("FeatureGroup/Name[@langid='1']")[0]["Value"] }
-        name_de = try_to { property_group_nodeset.xpath("FeatureGroup/Name[@langid='4']")[0]["Value"] }
+        name_en = try_to { property_group_nodeset.xpath("FeatureGroup/Name[@langid='1']")[0]["Value"].fix_utf8 }
+        name_de = try_to { property_group_nodeset.xpath("FeatureGroup/Name[@langid='4']")[0]["Value"].fix_utf8 }
         name_de ||= name_en
         property_group = ::PropertyGroup.find_by_name_de(name_de)
         unless property_group

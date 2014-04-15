@@ -51,7 +51,7 @@ namespace :icecat do
 
     # starten als: 'bundle exec rake icecat:metadata:download_and_overwrite_xml'
     # in Produktivumgebungen: 'bundle exec rake icecat:metadata:download_and_overwrite_xml RAILS_ENV=production'
-    desc 'Import all relevant XML files '
+    desc 'Import and overwrite all relevant XML files '
     task :download_and_overwrite_xml => :environment do
 
       ::JobLogger.info("=" * 50)
