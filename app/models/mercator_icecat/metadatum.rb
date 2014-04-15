@@ -116,8 +116,9 @@ module MercatorIcecat
     end
 
     def self.update_products
-      metadata = self.where{ product_id != nil }
+      metadata = self.where{ product_id != nil }.order(id: :asc)
       metadata.each do |metadatum|
+        next if metadatum.id  < 4193
         metadatum.update_product
       end
 
@@ -175,8 +176,11 @@ module MercatorIcecat
         icecat_id = property_group_nodeset["ID"]
         name_en = try_to { property_group_nodeset.xpath("FeatureGroup/Name[@langid='1']")[0]["Value"].fix_utf8 }
         name_de = try_to { property_group_nodeset.xpath("FeatureGroup/Name[@langid='4']")[0]["Value"].fix_utf8 }
-        name_de ||= name_en
-        property_group = ::PropertyGroup.find_by_name_de(name_de)
+        name_de ||= name_en # English, if German not available
+        name_de ||= try_to { property_group_nodeset.xpath("FeatureGroup/Name")[0]["Value"].fix_utf8 }
+                    # anything if neither German nor English available
+
+        property_group = ::PropertyGroup.find_by_icecat_id(icecat_id)
         unless property_group
           property_group = ::PropertyGroup.new(icecat_id: icecat_id,
                                                name_de: name_de,
@@ -190,10 +194,74 @@ module MercatorIcecat
         end
       end
 
-      product.features.destroy_all
-
+      product.values.destroy_all
       features_nodeset = product_nodeset.xpath("ProductFeature")
-      ::JobLogger.info("Metadata " + id.to_s + " updated Product " + product_id.to_s)
+      features_nodeset.each do |feature|
+        # icecat_presentation_value = feature.xpath("Presentation_Value") # not used here
+        icecat_feature_id = feature.xpath("Feature")[0]["ID"].to_i
+        icecat_value = feature["Value"]
+        icecat_feature_group_id = feature["CategoryFeatureGroup_ID"]
+
+        name_en = try_to { feature.xpath("Feature/Name[@langid='1']")[0]["Value"].fix_utf8 }
+        name_de = try_to { feature.xpath("Feature/Name[@langid='4']")[0]["Value"].fix_utf8 }
+        name_de ||= name_en # English, if German not available
+        name_de ||= try_to { feature.xpath("Feature/Name")[0]["Value"].fix_utf8 } # anything if neither German nor English available
+
+        unit_en = try_to { feature.xpath("Feature/Measure/Signs/Sign[@langid='1']")[0]["Value"].fix_utf8 }
+        unit_de = try_to { feature.xpath("Feature/Measure/Signs/Sign[@langid='4']")[0]["Value"].fix_utf8 }
+        unit_de ||= unit_de # English, if German not available
+        unit_de ||= try_to { feature.xpath("Feature/Measure/Signs/Sign")[0]["Value"].fix_utf8 }
+                    # anything if neither German nor English available
+
+        property_group = PropertyGroup.find_by_icecat_id(icecat_feature_group_id)
+        debugger unless property_group
+
+        property = Property.where(icecat_id: icecat_feature_id).first
+        unless property
+          property = Property.new(icecat_id: icecat_feature_id,
+                                  position: icecat_feature_id,
+                                  name_de: name_de,
+                                  name_en: name_en,
+                                  datatype: icecat_value.icecat_datatype)
+          if property.save
+            ::JobLogger.info("Property " + id.to_s + " saved.")
+          else
+            debugger
+            ::JobLogger.error("Property could not be saved:" + property.errors.first.to_s)
+          end
+        end
+
+        value = Value.where(property_group_id: property_group.id, property_id: property.id,
+                            product_id: product.id, state: icecat_value.icecat_datatype).first
+        unless value
+          value = Value.new(property_group_id: property_group.id, property_id: property.id, product_id: product.id)
+          value.state = icecat_value.icecat_datatype
+        end
+
+        if icecat_value.icecat_datatype == "flag"
+          value.flag = ( icecat_value == "Y" )
+        end
+
+        if icecat_value.icecat_datatype == "numeric"
+          value.amount = icecat_value.to_f
+          value.unit_de = try_to { unit_de.fix_utf8 }
+          value.unit_en = try_to { unit_en.fix_utf8 }
+        end
+
+        if icecat_value.icecat_datatype == "textual"
+          value.title_de = try_to { icecat_value.truncate(252).fix_utf8 }
+          value.title_en = try_to { icecat_value.truncate(252).fix_utf8 }
+        end
+
+        if value.save
+          ::JobLogger.info("Value " + value.id.to_s + " saved.")
+        else
+          debugger
+          ::JobLogger.error("Value could not be saved:" + value.errors.first)
+        end
+      end
+
+      ::JobLogger.info("=== Metadatum " + id.to_s + " updated Product " + product_id.to_s + " ===")
     end
   end
 end
