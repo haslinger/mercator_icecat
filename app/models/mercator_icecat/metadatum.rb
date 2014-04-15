@@ -118,7 +118,7 @@ module MercatorIcecat
     def self.update_products
       metadata = self.where{ product_id != nil }.order(id: :asc)
       metadata.each do |metadatum|
-        next if metadatum.id  < 4193
+        next if metadatum.id  < 46710
         metadatum.update_product
       end
 
@@ -194,7 +194,6 @@ module MercatorIcecat
         end
       end
 
-      product.values.destroy_all
       features_nodeset = product_nodeset.xpath("ProductFeature")
       features_nodeset.each do |feature|
         # icecat_presentation_value = feature.xpath("Presentation_Value") # not used here
@@ -207,11 +206,10 @@ module MercatorIcecat
         name_de ||= name_en # English, if German not available
         name_de ||= try_to { feature.xpath("Feature/Name")[0]["Value"].fix_utf8 } # anything if neither German nor English available
 
-        unit_en = try_to { feature.xpath("Feature/Measure/Signs/Sign[@langid='1']")[0]["Value"].fix_utf8 }
-        unit_de = try_to { feature.xpath("Feature/Measure/Signs/Sign[@langid='4']")[0]["Value"].fix_utf8 }
+        unit_en = try_to { feature.xpath("Feature/Measure/Signs/Sign[@langid='1']")[0].content.fix_utf8 }
+        unit_de = try_to { feature.xpath("Feature/Measure/Signs/Sign[@langid='4']")[0].content.fix_utf8 }
         unit_de ||= unit_de # English, if German not available
-        unit_de ||= try_to { feature.xpath("Feature/Measure/Signs/Sign")[0]["Value"].fix_utf8 }
-        debugger
+        unit_de ||= try_to { feature.xpath("Feature/Measure/Signs/Sign")[0].content.fix_utf8 }
                     # anything if neither German nor English available
 
         property_group = PropertyGroup.find_by_icecat_id(icecat_feature_group_id)
@@ -225,7 +223,7 @@ module MercatorIcecat
                                   name_en: name_en,
                                   datatype: icecat_value.icecat_datatype)
           if property.save
-            ::JobLogger.info("Property " + id.to_s + " saved.")
+            ::JobLogger.info("Property " + property.id.to_s + " saved.")
           else
             debugger
             ::JobLogger.error("Property could not be saved:" + property.errors.first.to_s)
@@ -252,6 +250,8 @@ module MercatorIcecat
         if icecat_value.icecat_datatype == "textual"
           value.title_de = try_to { icecat_value.truncate(252).fix_utf8 }
           value.title_en = try_to { icecat_value.truncate(252).fix_utf8 }
+          value.unit_de = try_to { unit_de.fix_utf8 }
+          value.unit_en = try_to { unit_en.fix_utf8 }
         end
 
         if value.save
