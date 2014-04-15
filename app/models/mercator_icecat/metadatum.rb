@@ -211,6 +211,7 @@ module MercatorIcecat
         unit_de = try_to { feature.xpath("Feature/Measure/Signs/Sign[@langid='4']")[0]["Value"].fix_utf8 }
         unit_de ||= unit_de # English, if German not available
         unit_de ||= try_to { feature.xpath("Feature/Measure/Signs/Sign")[0]["Value"].fix_utf8 }
+        debugger
                     # anything if neither German nor English available
 
         property_group = PropertyGroup.find_by_icecat_id(icecat_feature_group_id)
