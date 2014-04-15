@@ -63,15 +63,15 @@ module MercatorIcecat
         metadatum = self.find_or_create_by_icecat_product_id(product["Product_ID"])
         mode = Time.now - metadatum.created_at > 5 ? " updated." : " created."
         if metadatum.update(path:              product["path"],
-                           cat_id:            product["Catid"],
-                           icecat_product_id: product["Product_ID"],
-                           icecat_updated_at: product["Updated"],
-                           quality:           product["Quality"],
-                           supplier_id:       product["Supplier_id"],
-                           prod_id:           product["Prod_ID"],
-                           on_market:         product["On_Market"],
-                           model_name:        product["Model_Name"],
-                           product_view:      product["Product_View"])
+                            cat_id:            product["Catid"],
+                            icecat_product_id: product["Product_ID"],
+                            icecat_updated_at: product["Updated"],
+                            quality:           product["Quality"],
+                            supplier_id:       product["Supplier_id"],
+                            prod_id:           product["Prod_ID"],
+                            on_market:         product["On_Market"],
+                            model_name:        product["Model_Name"],
+                            product_view:      product["Product_View"])
           ::JobLogger.info("Metadatum " + product["Prod_ID"].to_s + mode)
         else
           ::JobLogger.error("Metadatum " + product["Prod_ID"].to_s + " could not be saved: " + metadatum.errors.first )
@@ -129,14 +129,20 @@ module MercatorIcecat
       unless overwrite
         return false if File.exist?(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml"))
       end
-      io = open(Access::BASE_URL + "/" + self.path, Access.open_uri_options).read if self.path
-      file = File.new(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml"), "w")
-      io.each_line do |line|
-        # encode fixes: Encoding::UndefinedConversionError: "\xC3" from ASCII-8BIT to UTF-8
-        file.write line.encode("UTF-8", :invalid => :replace, :undef => :replace, :replace => "")
+
+      if self.path
+        # force_encoding fixes: Encoding::UndefinedConversionError: "\xC3" from ASCII-8BIT to UTF-8
+        io = open(Access::BASE_URL + "/" + self.path, Access.open_uri_options).read.force_encoding('UTF-8')
+        file = File.new(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml"), "w")
+        io.each_line do |line|
+          file.write line
+        end
+
+        file.close
+        return true
+      else
+        return false
       end
-      file.close
-      return true
     end
 
     def update_product
