@@ -17,7 +17,7 @@ module MercatorIcecat
     # --- Class Methods --- #
 
     def self.open_uri_options
-      {:http_basic_authentication => [USER, PASSWORD]}
+      {:http_basic_authentication => [self::USER, self::PASSWORD]}
     end
 
     def self.download_index(full: false)
