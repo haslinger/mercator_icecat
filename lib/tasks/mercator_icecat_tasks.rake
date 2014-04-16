@@ -84,6 +84,18 @@ namespace :icecat do
       ::JobLogger.info("Finished Job: icecat:metadata:update_product_relations")
       ::JobLogger.info("=" * 50)
     end
+
+    # starten als: 'bundle exec rake icecat:metadata:import_missing_images'
+    # in Produktivumgebungen: 'bundle exec rake icecat:metadata:import_missing_images RAILS_ENV=production'
+    desc 'Update all products from downloaded XML files.'
+    task :import_missing_images => :environment do
+
+      ::JobLogger.info("=" * 50)
+      ::JobLogger.info("Started Job: icecat:metadata:import_missing_images")
+      MercatorIcecat::Metadatum.import_missing_images
+      ::JobLogger.info("Finished Job: icecat:metadata:import_missing_images")
+      ::JobLogger.info("=" * 50)
+    end
   end
 
   namespace :catalog do

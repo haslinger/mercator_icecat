@@ -126,8 +126,15 @@ module MercatorIcecat
     def self.update_product_relations
       metadata = self.where{ product_id != nil }.order(id: :asc)
       metadata.each do |metadatum|
-        # next if metadatum.id  < 46710
         metadatum.update_product_relations
+      end
+    end
+
+    def self.import_missing_images
+      metadata = self.includes(:product).where{product.id != nil}
+                     .where{product.photo_file_name == nil}.references(:product).order(id: :asc)
+      metadata.each do |metadatum|
+        metadatum.import_missing_image
       end
     end
 
@@ -316,5 +323,32 @@ module MercatorIcecat
         ::JobLogger.error("Product " + product.id.to_s + " could not be updated")
       end
     end
+
+    def import_missing_image
+      file = open(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml")).read
+      product_nodeset = Nokogiri::XML(file).xpath("//ICECAT-interface/Product")[0]
+
+      product = self.product
+      return nil if product.photo_file_name # no overwriting intended
+
+      path = product_nodeset["HighPic"]
+
+      begin
+        io = StringIO.new(open(path, Access.open_uri_options).read)
+        io.class.class_eval { attr_accessor :original_filename }
+        io.original_filename = path.split("/").last
+
+        product.photo = io
+
+        if product.save(validate: false) # FIXME!: This time without validations ...
+          ::JobLogger.info("Image  " + path.split("/").last + " for Product " + product.id.to_s + " saved." )
+        else
+          ::JobLogger.error("Image  " + path.split("/").last + " for Product " + product.id.to_s + " could not be saved!" )
+        end
+      rescue
+        ::JobLogger.warn("Image  " + path + " could not be loaded!" )
+      end
+    end
+
   end
 end
