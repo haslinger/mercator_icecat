@@ -14,7 +14,7 @@ module MercatorIcecat
       icecat_updated_at :datetime
       quality           :string
       supplier_id       :string
-      icecat_product_id :string
+      icecat_product_id :string, :index => true
       prod_id           :string, :index => true
       product_number    :string
       cat_id            :string
@@ -121,9 +121,16 @@ module MercatorIcecat
         next if metadatum.id  < 46710
         metadatum.update_product
       end
-
-      # self.find(99883).update_product
     end
+
+    def self.update_product_relations
+      metadata = self.where{ product_id != nil }.order(id: :asc)
+      metadata.each do |metadatum|
+        # next if metadatum.id  < 46710
+        metadatum.update_product_relations
+      end
+    end
+
 
     # --- Instance Methods --- #
 
@@ -150,8 +157,6 @@ module MercatorIcecat
     def update_product
       # :en => lang_id = 1, :de => lang_id = 4
       file = open(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml")).read
-      # getting rid of invalid unicode characters
-      file
       product_nodeset = Nokogiri::XML(file).xpath("//ICECAT-interface/Product")[0]
       product = self.product
 
@@ -208,12 +213,11 @@ module MercatorIcecat
 
         unit_en = try_to { feature.xpath("Feature/Measure/Signs/Sign[@langid='1']")[0].content.fix_utf8 }
         unit_de = try_to { feature.xpath("Feature/Measure/Signs/Sign[@langid='4']")[0].content.fix_utf8 }
-        unit_de ||= unit_de # English, if German not available
+        unit_de ||= unit_en # English, if German not available
         unit_de ||= try_to { feature.xpath("Feature/Measure/Signs/Sign")[0].content.fix_utf8 }
                     # anything if neither German nor English available
 
         property_group = PropertyGroup.find_by_icecat_id(icecat_feature_group_id)
-        debugger unless property_group
 
         property = Property.where(icecat_id: icecat_feature_id).first
         unless property
@@ -225,7 +229,6 @@ module MercatorIcecat
           if property.save
             ::JobLogger.info("Property " + property.id.to_s + " saved.")
           else
-            debugger
             ::JobLogger.error("Property could not be saved:" + property.errors.first.to_s)
           end
         end
@@ -257,12 +260,61 @@ module MercatorIcecat
         if value.save
           ::JobLogger.info("Value " + value.id.to_s + " saved.")
         else
-          debugger
           ::JobLogger.error("Value could not be saved:" + value.errors.first)
         end
       end
 
       ::JobLogger.info("=== Metadatum " + id.to_s + " updated Product " + product_id.to_s + " ===")
+    end
+
+    def delete_relations
+      product = self.product
+      relations_count = product.productrelations.count
+      product.productrelations.destroy_all
+      supplies_count = product.supplyrelations.count
+      product.supplyrelations.destroy_all
+      ::JobLogger.info(relations_count.to_s + " Productrel., " +
+                       supplies_count.to_s + " Supplyrel. deleted for Product " + product.id.to_s +
+                       " Metadatum " + self.id.to_s)
+    end
+
+    def update_product_relations
+      file = open(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml")).read
+      product_nodeset = Nokogiri::XML(file).xpath("//ICECAT-interface/Product")[0]
+      product = self.product
+      cat_id = self.cat_id
+
+      self.delete_relations
+
+      unknown_products = 0
+      icecat_ids = []
+      product_nodeset.xpath("ProductRelated").each do |relation|
+        icecat_ids << try_to { relation.xpath("Product")[0]["ID"].to_i }
+      end
+
+      related_metadata = Metadatum.where(icecat_product_id: icecat_ids)
+      related_metadata.each do |related_metadatum|
+        related_product_id = try_to { related_metadatum.product_id.to_i }
+
+        if related_product_id > 0
+          if related_metadatum.cat_id == cat_id
+            product.productrelations.new(related_product_id: related_product_id)
+          else
+            product.supplyrelations.new(supply_id: related_product_id)
+          end
+        else
+          unknown_products += 1
+        end
+      end
+
+      if product.save(validate: false) # FIXME!: This time without validations ...
+        ::JobLogger.info("Product " + product.id.to_s + ": " +
+                         product.productrelations.count.to_s + " Productrel. " +
+                         product.supplyrelations.count.to_s + ", Supplyrel. created, " +
+                         unknown_products.to_s + " unknown.")
+      else
+        ::JobLogger.error("Product " + product.id.to_s + " could not be updated")
+      end
     end
   end
 end

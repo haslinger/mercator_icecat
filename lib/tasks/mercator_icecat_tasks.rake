@@ -72,6 +72,18 @@ namespace :icecat do
       ::JobLogger.info("Finished Job: icecat:metadata:update_products")
       ::JobLogger.info("=" * 50)
     end
+
+    # starten als: 'bundle exec rake icecat:metadata:update_product_relations'
+    # in Produktivumgebungen: 'bundle exec rake icecat:metadata:update_product_relations RAILS_ENV=production'
+    desc 'Update all products from downloaded XML files.'
+    task :update_product_relations => :environment do
+
+      ::JobLogger.info("=" * 50)
+      ::JobLogger.info("Started Job: icecat:metadata:update_product_relations")
+      MercatorIcecat::Metadatum.update_product_relations
+      ::JobLogger.info("Finished Job: icecat:metadata:update_product_relations")
+      ::JobLogger.info("=" * 50)
+    end
   end
 
   namespace :catalog do
