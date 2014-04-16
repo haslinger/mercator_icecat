@@ -118,7 +118,6 @@ module MercatorIcecat
     def self.update_products
       metadata = self.where{ product_id != nil }.order(id: :asc)
       metadata.each do |metadatum|
-        next if metadatum.id  < 46710
         metadatum.update_product
       end
     end
@@ -205,6 +204,8 @@ module MercatorIcecat
           end
         end
       end
+
+      product.values.destroy_all
 
       features_nodeset = product_nodeset.xpath("ProductFeature")
       features_nodeset.each do |feature|

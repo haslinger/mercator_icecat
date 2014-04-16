@@ -27,7 +27,7 @@ namespace :icecat do
 
     # starten als: 'bundle exec rake icecat:metadata:assign_products'
     # in Produktivumgebungen: 'bundle exec rake icecat:metadata:assign_products RAILS_ENV=production'
-    desc 'Import metadata from Icecat '
+    desc 'Assign Products to Metadata '
     task :assign_products => :environment do
 
       ::JobLogger.info("=" * 50)
@@ -63,7 +63,7 @@ namespace :icecat do
 
     # starten als: 'bundle exec rake icecat:metadata:update_products'
     # in Produktivumgebungen: 'bundle exec rake icecat:metadata:update_products RAILS_ENV=production'
-    desc 'Update all products from downloaded XML files.'
+    desc 'Update all products, properties, property groups and values from downloaded XML files.'
     task :update_products => :environment do
 
       ::JobLogger.info("=" * 50)
@@ -75,7 +75,7 @@ namespace :icecat do
 
     # starten als: 'bundle exec rake icecat:metadata:update_product_relations'
     # in Produktivumgebungen: 'bundle exec rake icecat:metadata:update_product_relations RAILS_ENV=production'
-    desc 'Update all products from downloaded XML files.'
+    desc 'Update product relations from downloaded XML files.'
     task :update_product_relations => :environment do
 
       ::JobLogger.info("=" * 50)
