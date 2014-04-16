@@ -346,8 +346,9 @@ module MercatorIcecat
         else
           ::JobLogger.error("Image  " + path.split("/").last + " for Product " + product.id.to_s + " could not be saved!" )
         end
-      rescue
+      rescue Exception => e
         ::JobLogger.warn("Image  " + path + " could not be loaded!" )
+        ::JobLogger.warn(e)
       end
     end
 
