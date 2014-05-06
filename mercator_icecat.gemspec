@@ -12,9 +12,10 @@ Gem::Specification.new do |s|
   s.summary     = "MercatorIcecat provides an Icecat Importer for the Mesonic Guided Selling Application."
   s.description = "MercatorIcecat interfaces between Mercator and the Icecat Product Catalog in the realm of product properties, attributes, data sheets, images and product relations."
   s.files = Dir["{app,config,db,lib}/**/*", "LICENSE", "Rakefile", "README.rdoc"]
-  s.test_files = Dir["test/**/*"]
+  s.test_files = Dir["spec/**/*"]
 
   s.add_dependency "rails", "~> 4.0.3"
   s.add_dependency "saxerator"
   s.add_dependency "try_to"
+  s.add_development_dependency 'factory_girl_rails'
 end
