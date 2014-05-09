@@ -21,4 +21,8 @@ module ProductExtensions
     self.article_number =~ /^HP-(.+)$/
     $1 ? "1" : nil
   end
+
+  def icecat_product_id
+    icecat_metadata.first.icecat_product_id if icecat_metadata
+  end
 end
