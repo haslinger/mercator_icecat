@@ -38,7 +38,7 @@
 
     <content-body: param>
       <a action="new" to="&model" param="new-link">
-        <ht key="mercator_icecat/metadatum.actions.new/">
+        <ht key="mercator_icecat/metadatum.actions.new/" />
       </a>
 
       <page-nav param="top-page-nav"/>
