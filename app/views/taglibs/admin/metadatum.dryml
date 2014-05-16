@@ -38,7 +38,7 @@
 
     <content-body: param>
       <a action="new" to="&model" param="new-link">
-        <ht key="mercator_icecat/metadatum.actions.new">New Metadatum</ht>
+        <ht key="mercator_icecat/metadatum.actions.new/">
       </a>
 
       <page-nav param="top-page-nav"/>
@@ -59,9 +59,7 @@
 
     <content-header: param>
       <h2 param="heading">
-        <ht key="mercator_icecat/metadatum.new.heading">
-          New Metadatum
-        </ht>
+        <ht key="mercator_icecat/metadatum.new.heading"/>
       </h2>
     </content-header:>
 
@@ -81,17 +79,13 @@
 
     <content-header: param>
       <h2 param="heading">
-        <ht key="mercator_icecat/metadatum.show.heading" name="#{name(:no_wrapper => true)}">
-          Metadatum <name/>
-        </ht>
+        <ht key="mercator_icecat/metadatum.show.heading" name="#{name(:no_wrapper => true)}"/>
       </h2>
 
       <record-flags fields="" param/>
 
       <a action="edit" if="&can_edit?" param="edit-link">
-        <ht key="mercator_icecat/metadatum.actions.edit" name="#{name(:no_wrapper => true)}">
-          Edit Metadatum
-        </ht>
+        <ht key="mercator_icecat/metadatum.actions.edit" name="#{name(:no_wrapper => true)}"/>
       </a>
     </content-header:>
 
@@ -110,9 +104,7 @@
 
     <content-header: param>
       <h2 param="heading">
-        <ht key="mercator_icecat/metadatum.edit.heading" name="#{name(:no_wrapper => true)}">
-          Edit Metadatum
-        </ht>
+        <ht key="mercator_icecat/metadatum.edit.heading" name="#{name(:no_wrapper => true)}"/>
       </h2>
       <delete-button label="#{ht 'mercator_icecat/metadatum.actions.delete', :default=>['Remove This Metadatum']}" param/>
     </content-header:>
