@@ -104,8 +104,14 @@ module MercatorIcecat
       ::JobLogger.warn(products.count.to_s + " products without metadata.")
     end
 
-    def self.download(overwrite: false)
-      metadata = self.where{ product_id != nil }
+    def self.download(overwrite: false, from_today: true)
+      if from_today
+        @twentyfivehours = Time.now - 25.hours
+        metadata = self.where{ (product_id != nil) & (updated_at > my{@twentyfivehours})}
+      else
+        metadata = self.where{ product_id != nil }
+      end
+
       metadata.each do |metadatum|
         if metadatum.download(overwrite: overwrite)
           ::JobLogger.info("XML Metadatum " + metadatum.prod_id.to_s + " downloaded.")
@@ -115,15 +121,27 @@ module MercatorIcecat
       end
     end
 
-    def self.update_products
-      metadata = self.where{ product_id != nil }.order(id: :asc)
+    def self.update_products(from_today: true)
+      if from_today
+        @twentyfivehours = Time.now - 25.hours
+        metadata = self.where{ (product_id != nil) & (updated_at > my{@twentyfivehours})}.order(id: :asc)
+      else
+        metadata = self.where{ product_id != nil }.order(id: :asc)
+      end
+
       metadata.each do |metadatum|
         metadatum.update_product
       end
     end
 
-    def self.update_product_relations
-      metadata = self.where{ product_id != nil }.order(id: :asc)
+    def self.update_product_relations(from_today: true)
+      if from_today
+        @twentyfivehours = Time.now - 25.hours
+        metadata = self.where{ (product_id != nil) & (updated_at > my{@twentyfivehours})}.order(id: :asc)
+      else
+        metadata = self.where{ product_id != nil }.order(id: :asc)
+      end
+
       metadata.each do |metadatum|
         metadatum.update_product_relations
       end
