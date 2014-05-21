@@ -352,6 +352,11 @@ module MercatorIcecat
 
       path = product_nodeset["HighPic"]
 
+      if path.empty?
+        ::JobLogger.warn("na Image available for Product " + product.id.to_s)
+        return nil # no image available
+      end
+
       begin
         io = StringIO.new(open(path, Access.open_uri_options).read)
         io.class.class_eval { attr_accessor :original_filename }
