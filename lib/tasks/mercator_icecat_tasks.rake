@@ -150,7 +150,7 @@ namespace :icecat do
       ::JobLogger.info("Finished Task: icecat:metadata:update_todays_products")
 
       ::JobLogger.info("Started Task: icecat:metadata:update_product_relations")
-      MercatorIcecat::Metadatum.update_product_relations(from_today: false)
+      MercatorIcecat::Metadatum.update_product_relations(from_today: true)
       ::JobLogger.info("Finished Task: icecat:metadata:update_product_relations")
 
       ::JobLogger.info("Started Task: icecat:metadata:import_missing_images")
