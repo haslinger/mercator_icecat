@@ -12,6 +12,7 @@ class String
     string = string.gsub(/\xD0\xBC/, '-')
     string = string.gsub(/\xEF\xAC\x81/, '-')
     string = string.gsub(/\xE2\x89\xA4/, '-')
+    string = string.gsub(/\xEF\xBF\xBD/, 'ä')
     # string = string.gsub(//, '-')
     return string
   end
@@ -23,5 +24,4 @@ class String
     end
     return "textual"
   end
-
 end
