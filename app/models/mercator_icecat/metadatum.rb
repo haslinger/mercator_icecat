@@ -133,7 +133,8 @@ module MercatorIcecat
       end
 
       metadata.each do |metadatum|
-        metadatum.update_product
+        # if-clause is handy for resume after dump
+        metadatum.update_product # if metadatum.id >= 109279
       end
     end
 
