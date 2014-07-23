@@ -63,6 +63,9 @@ module MercatorIcecat
       parser.for_tag("file").with_attribute("Supplier_id", "1").each do |product|
         metadatum = self.find_or_create_by_icecat_product_id(product["Product_ID"])
         mode = Time.now - metadatum.created_at > 5 ? " updated." : " created."
+
+        model_name = product["Model_Name"].fix_utf8 if product["Model_Name"].present?
+
         if metadatum.update(path:              product["path"],
                             cat_id:            product["Catid"],
                             icecat_product_id: product["Product_ID"],
@@ -71,7 +74,7 @@ module MercatorIcecat
                             supplier_id:       product["Supplier_id"],
                             prod_id:           product["Prod_ID"],
                             on_market:         product["On_Market"],
-                            model_name:        product["Model_Name"],
+                            model_name:        model_name,
                             product_view:      product["Product_View"])
           ::JobLogger.info("Metadatum " + product["Prod_ID"].to_s + mode)
         else

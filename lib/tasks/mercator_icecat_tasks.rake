@@ -37,18 +37,6 @@ namespace :icecat do
       ::JobLogger.info("=" * 50)
     end
 
-    # starten als: 'bundle exec rake icecat:metadata:download_daily_xml'
-    # in Produktivumgebungen: 'bundle exec rake icecat:metadata:download_daily_xml RAILS_ENV=production'
-    desc 'Import the XML files from the last 25 hours'
-    task :download_daily_xml => :environment do
-
-      ::JobLogger.info("=" * 50)
-      ::JobLogger.info("Started Job: icecat:metadata:download_daily_xml")
-      MercatorIcecat::Metadatum.download(overwrite: true, from_today: true)
-      ::JobLogger.info("Finished Job: icecat:metadata:download_daily_xml")
-      ::JobLogger.info("=" * 50)
-    end
-
     # starten als: 'bundle exec rake icecat:metadata:download_and_overwrite_xml'
     # in Produktivumgebungen: 'bundle exec rake icecat:metadata:download_and_overwrite_xml RAILS_ENV=production'
     desc 'Import and overwrite all XML files '
@@ -58,6 +46,18 @@ namespace :icecat do
       ::JobLogger.info("Started Job: icecat:metadata:download_and_overwrite_xml")
       MercatorIcecat::Metadatum.download(overwrite: true, from_today: false)
       ::JobLogger.info("Finished Job: icecat:metadata:download_and_overwrite_xml")
+      ::JobLogger.info("=" * 50)
+    end
+
+    # starten als: 'bundle exec rake icecat:metadata:download_daily_xml'
+    # in Produktivumgebungen: 'bundle exec rake icecat:metadata:download_daily_xml RAILS_ENV=production'
+    desc 'Import the XML files from the last 25 hours'
+    task :download_daily_xml => :environment do
+
+      ::JobLogger.info("=" * 50)
+      ::JobLogger.info("Started Job: icecat:metadata:download_daily_xml")
+      MercatorIcecat::Metadatum.download(overwrite: true, from_today: true)
+      ::JobLogger.info("Finished Job: icecat:metadata:download_daily_xml")
       ::JobLogger.info("=" * 50)
     end
 
@@ -85,18 +85,6 @@ namespace :icecat do
       ::JobLogger.info("=" * 50)
     end
 
-    # starten als: 'bundle exec rake icecat:metadata:update_todays_product_relations'
-    # in Produktivumgebungen: 'bundle exec rake icecat:metadata:update_todays_product_relations RAILS_ENV=production'
-    desc 'Update todays product relations from downloaded XML files.'
-    task :update_todays_product_relations => :environment do
-
-      ::JobLogger.info("=" * 50)
-      ::JobLogger.info("Started Job: icecat:metadata:update_todays_product_relations")
-      MercatorIcecat::Metadatum.update_product_relations(from_today: true)
-      ::JobLogger.info("Finished Job: icecat:metadata:update_todays_product_relations")
-      ::JobLogger.info("=" * 50)
-    end
-
     # starten als: 'bundle exec rake icecat:metadata:update_product_relations'
     # in Produktivumgebungen: 'bundle exec rake icecat:metadata:update_product_relations RAILS_ENV=production'
     desc 'Update product relations from downloaded XML files.'
@@ -106,6 +94,18 @@ namespace :icecat do
       ::JobLogger.info("Started Job: icecat:metadata:update_product_relations")
       MercatorIcecat::Metadatum.update_product_relations(from_today: false)
       ::JobLogger.info("Finished Job: icecat:metadata:update_product_relations")
+      ::JobLogger.info("=" * 50)
+    end
+
+    # starten als: 'bundle exec rake icecat:metadata:update_todays_product_relations'
+    # in Produktivumgebungen: 'bundle exec rake icecat:metadata:update_todays_product_relations RAILS_ENV=production'
+    desc 'Update todays product relations from downloaded XML files.'
+    task :update_todays_product_relations => :environment do
+
+      ::JobLogger.info("=" * 50)
+      ::JobLogger.info("Started Job: icecat:metadata:update_todays_product_relations")
+      MercatorIcecat::Metadatum.update_product_relations(from_today: true)
+      ::JobLogger.info("Finished Job: icecat:metadata:update_todays_product_relations")
       ::JobLogger.info("=" * 50)
     end
 
@@ -160,7 +160,6 @@ namespace :icecat do
       ::JobLogger.info("Finished Job: icecat:catalog:daily_update")
       ::JobLogger.info("=" * 50)
     end
-
   end
 
   namespace :catalog do
