@@ -164,6 +164,18 @@ namespace :icecat do
   end
 
   namespace :catalog do
+    # starten als: 'bundle exec rake icecat:catalog:download_full'
+    # in Produktivumgebungen: 'bundle exec rake icecat:catalog:download_full RAILS_ENV=production'
+    desc 'Download full catalog index from Icecat '
+    task :download_full => :environment do
+
+      ::JobLogger.info("=" * 50)
+      ::JobLogger.info("Started Job: icecat:catalog:download_full")
+      MercatorIcecat::Access.download_index(full: true)
+      ::JobLogger.info("Finished Job: icecat:catalog:download_full")
+      ::JobLogger.info("=" * 50)
+    end
+
     # starten als: 'bundle exec rake icecat:catalog:download_daily'
     # in Produktivumgebungen: 'bundle exec rake icecat:catalog:download_daily RAILS_ENV=production'
     desc 'Download daily catalog index from Icecat '
@@ -172,18 +184,6 @@ namespace :icecat do
       ::JobLogger.info("=" * 50)
       ::JobLogger.info("Started Job: icecat:catalog:download_daily")
       MercatorIcecat::Access.download_index(full: false)
-      ::JobLogger.info("Finished Job: icecat:catalog:download_daily")
-      ::JobLogger.info("=" * 50)
-    end
-
-    # starten als: 'bundle exec rake icecat:catalog:download_full'
-    # in Produktivumgebungen: 'bundle exec rake icecat:catalog:download_full RAILS_ENV=production'
-    desc 'Download full catalog index from Icecat '
-    task :download_full => :environment do
-
-      ::JobLogger.info("=" * 50)
-      ::JobLogger.info("Started Job: icecat:catalog:download_daily")
-      MercatorIcecat::Access.download_index(full: true)
       ::JobLogger.info("Finished Job: icecat:catalog:download_daily")
       ::JobLogger.info("=" * 50)
     end
