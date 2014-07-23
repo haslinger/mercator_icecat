@@ -357,7 +357,7 @@ module MercatorIcecat
       path = product_nodeset["HighPic"]
 
       if path.empty?
-        ::JobLogger.warn("na Image available for Product " + product.id.to_s)
+        ::JobLogger.warn("no Image available for Product " + product.id.to_s)
         return nil # no image available
       end
 
