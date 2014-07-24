@@ -167,8 +167,12 @@ module MercatorIcecat
         return false if File.exist?(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml"))
       end
 
-      if self.path
-        # force_encoding fixes: Encoding::UndefinedConversionError: "\xC3" from ASCII-8BIT to UTF-8
+      unless self.path
+        return false
+      end
+
+      # force_encoding fixes: Encoding::UndefinedConversionError: "\xC3" from ASCII-8BIT to UTF-8
+      begin
         io = open(Access::BASE_URL + "/" + self.path, Access.open_uri_options).read.force_encoding('UTF-8')
         file = File.new(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml"), "w")
         io.each_line do |line|
@@ -177,7 +181,8 @@ module MercatorIcecat
 
         file.close
         return true
-      else
+      rescue
+        ::JobLogger.error("Download error: " + Access::BASE_URL + "/" + self.path)
         return false
       end
     end

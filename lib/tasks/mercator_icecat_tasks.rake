@@ -125,24 +125,25 @@ namespace :icecat do
     # in Produktivumgebungen: 'bundle exec rake icecat:metadata:daily_update RAILS_ENV=production'
     desc 'Daily Update '
     task :daily_update => :environment do
+      # The first daily run after installation re-downloads all xml files, that's OK.
 
       ::JobLogger.info("=" * 50)
       ::JobLogger.info("Started Job: icecat:catalog:daily_update")
 
       ::JobLogger.info("Started Task: icecat:catalog:download_daily")
-      MercatorIcecat::Access.download_index(full: false)
+#      MercatorIcecat::Access.download_index(full: false)
       ::JobLogger.info("Finished Task: icecat:catalog:download_daily")
 
       ::JobLogger.info("Started Task: icecat:metadata:import_daily")
-      MercatorIcecat::Metadatum.import(date: Date.today)
+#      MercatorIcecat::Metadatum.import(date: Date.today)
       ::JobLogger.info("Finished Task: icecat:metadata:import_daily")
 
       ::JobLogger.info("Started Task: icecat:metadata:assign_products")
-      MercatorIcecat::Metadatum.assign_products(only_missing: true)
+#      MercatorIcecat::Metadatum.assign_products(only_missing: true)
       ::JobLogger.info("Finished Task: icecat:metadata:assign_products")
 
       ::JobLogger.info("Started Task: icecat:metadata:download_daily_xml")
-      MercatorIcecat::Metadatum.download(overwrite: true, from_today: true)
+#      MercatorIcecat::Metadatum.download(overwrite: true, from_today: true)
       ::JobLogger.info("Finished Task: icecat:metadata:download_daily_xml")
 
       ::JobLogger.info("Started Task: icecat:metadata:update_todays_products")
