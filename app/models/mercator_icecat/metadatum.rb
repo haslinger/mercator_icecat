@@ -94,9 +94,10 @@ module MercatorIcecat
 
       products.each do |product|
         metadata = self.where(prod_id: product.icecat_article_number)
-        metadata.each do |metadatum|
+        amount = metadata.count
+        metadata.each_with_index do |metadatum, index|
           if metadatum.update(product_id: product.id)
-            ::JobLogger.info("Product " + product.number.to_s + " assigned to " + metadatum.id.to_s)
+            ::JobLogger.info("Product " + product.number.to_s + " assigned to " + metadatum.id.to_s + " (" + index.to_s + "/" + amount.to_s + ")")
           else
             ::JobLogger.error("Product " + product.number.to_s + " assigned to " + metadatum.id.to_s)
           end
@@ -115,9 +116,10 @@ module MercatorIcecat
         metadata = self.where{ product_id != nil }
       end
 
-      metadata.each do |metadatum|
+      amount = metadata.count
+      metadata.each_with_index do |metadatum, index|
         if metadatum.download(overwrite: overwrite)
-          ::JobLogger.info("XML Metadatum " + metadatum.prod_id.to_s + " downloaded.")
+          ::JobLogger.info("XML Metadatum " + metadatum.prod_id.to_s + " downloaded. (" + index.to_s + "/" + amount.to_s + ")")
         else
           ::JobLogger.info("XML Metadatum " + metadatum.prod_id.to_s + " exists (no overwrite)!")
         end
@@ -132,9 +134,11 @@ module MercatorIcecat
         metadata = self.where{ product_id != nil }.order(id: :asc)
       end
 
-      metadata.each do |metadatum|
+      amount = metadata.count
+      metadata.each_with_index do |metadatum, index|
         # if-clause is handy for resume after dump
         metadatum.update_product # if metadatum.id >= 109279
+        ::JobLogger.info("(" + index.to_s + "/" + amount.to_s + ")")
       end
     end
 
@@ -146,8 +150,10 @@ module MercatorIcecat
         metadata = self.where{ product_id != nil }.order(id: :asc)
       end
 
-      metadata.each do |metadatum|
+      amount = metadata.count
+      metadata.each_with_index do |metadatum, index|
         metadatum.update_product_relations
+        ::JobLogger.info("(" + index.to_s + "/" + amount.to_s + ")")
       end
     end
 
@@ -298,7 +304,6 @@ module MercatorIcecat
           ::JobLogger.error("Value could not be saved:" + value.errors.first)
         end
       end
-
       ::JobLogger.info("=== Metadatum " + id.to_s + " updated Product " + product_id.to_s + " ===")
     end
 
