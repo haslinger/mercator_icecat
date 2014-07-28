@@ -23,6 +23,6 @@ module ProductExtensions
   end
 
   def icecat_product_id
-    icecat_metadata.first.icecat_product_id if icecat_metadata
+    icecat_metadata.first.icecat_product_id if icecat_metadata.any?
   end
 end
