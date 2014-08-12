@@ -5,8 +5,8 @@ module MercatorIcecat
 
     attr_accessor(:user, :password, :vendor, :lang, :typ, :base_uri, :full_index_url, :daily_index_url, :open_uri_options)
 
-    USER = "donrudl"
-    PASSWORD = "cpP42J"
+    USER = Constant.find_by_key("icecat_user").value
+    PASSWORD = Constant.find_by_key("icecat_password").value
     VENDOR = "HP"
     LANG = "int"
     TYP = "productxml"
