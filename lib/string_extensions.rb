@@ -1,19 +1,20 @@
 class String
   def fix_utf8
     string = self
-    string = string.gsub(/\xC5\xA3/, 'ţ')
-    string = string.gsub(/\xCE\xBC/, 'μ')
-    string = string.gsub(/\xD0\xA1/, 'C')
-    string = string.gsub(/\xD0\xB1/, 'б')
-    string = string.gsub(/\xD0\xBC/, 'м')
-    string = string.gsub(/\xD1\x85/, 'х')
+    string = string.gsub(/\xC5\xA3/, 't')
+    string = string.gsub(/\xCE\xBC/, 'm')
+    string = string.gsub(/\xD0\xA1/, 'c')
+    string = string.gsub(/\xD0\xB1/, 's')
+    string = string.gsub(/\xD0\xBC/, 'm')
+    string = string.gsub(/\xD1\x85/, 'x')
+
 
     string = string.gsub(/\xE2\x80\x8E/, '->')
-    string = string.gsub(/\xE2\x80\x90/, '‐')
-    string = string.gsub(/\xE2\x80\x91/, '‑')
-    string = string.gsub(/\xE2\x89\xA4/, '≤')
-    string = string.gsub(/\xE2\x97\x8B/, '○')
-    string = string.gsub(/\xEF\xAC\x81/, 'ﬁ')
+    string = string.gsub(/\xE2\x80\x90/, '-')
+    string = string.gsub(/\xE2\x80\x91/, '-')
+    string = string.gsub(/\xE2\x89\xA4/, '<=')
+    string = string.gsub(/\xE2\x97\x8B/, 'o')
+    string = string.gsub(/\xEF\xAC\x81/, 'f')
     string = string.gsub(/\xEF\xBD\x87/, 'g')
     string = string.gsub(/\xEF\xBF\xBD/, '?')
 
