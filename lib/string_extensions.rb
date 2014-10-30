@@ -1,21 +1,22 @@
 class String
   def fix_utf8
     string = self
-    string = string.gsub(/\xC4\xB1/, '-')
-    string = string.gsub(/\xC5\xA3/, '-')
-    string = string.gsub(/\xCE\xBC/, '-')
-    string = string.gsub(/\xD0\xA1/, '-')
-    string = string.gsub(/\xD0\xB1/, '-')
-    string = string.gsub(/\xD0\xBC/, '-')
-    string = string.gsub(/\xD1\x85/, '-')
+    string = string.gsub(/\xC5\xA3/, 'ţ')
+    string = string.gsub(/\xCE\xBC/, 'μ')
+    string = string.gsub(/\xD0\xA1/, 'C')
+    string = string.gsub(/\xD0\xB1/, 'б')
+    string = string.gsub(/\xD0\xBC/, 'м')
+    string = string.gsub(/\xD1\x85/, 'х')
 
-    string = string.gsub(/\xE2\x80\x8E/, '-')
-    string = string.gsub(/\xE2\x80\x90/, '-')
-    string = string.gsub(/\xE2\x80\x91/, '-')
-    string = string.gsub(/\xE2\x89\xA4/, '-')
-    string = string.gsub(/\xE2\x97\x8B/, '-')
-    string = string.gsub(/\xEF\xAC\x81/, '-')
-    string = string.gsub(/\xEF\xBF\xBD/, 'ä')
+    string = string.gsub(/\xE2\x80\x8E/, '->')
+    string = string.gsub(/\xE2\x80\x90/, '‐')
+    string = string.gsub(/\xE2\x80\x91/, '‑')
+    string = string.gsub(/\xE2\x89\xA4/, '≤')
+    string = string.gsub(/\xE2\x97\x8B/, '○')
+    string = string.gsub(/\xEF\xAC\x81/, 'ﬁ')
+    string = string.gsub(/\xEF\xBD\x87/, 'ｇ')
+    string = string.gsub(/\xEF\xBF\xBD/, '�')
+
     # string = string.gsub(//, '-')
     return string
   end
