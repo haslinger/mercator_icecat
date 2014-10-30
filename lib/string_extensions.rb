@@ -14,8 +14,8 @@ class String
     string = string.gsub(/\xE2\x89\xA4/, '≤')
     string = string.gsub(/\xE2\x97\x8B/, '○')
     string = string.gsub(/\xEF\xAC\x81/, 'ﬁ')
-    string = string.gsub(/\xEF\xBD\x87/, 'ｇ')
-    string = string.gsub(/\xEF\xBF\xBD/, '�')
+    string = string.gsub(/\xEF\xBD\x87/, 'g')
+    string = string.gsub(/\xEF\xBF\xBD/, '?')
 
     # string = string.gsub(//, '-')
     return string
