@@ -1,12 +1,14 @@
 class String
   def fix_utf8
     string = self
+    string = string.gsub(/\xC4\xB1/, 'i')
     string = string.gsub(/\xC5\xA3/, 't')
     string = string.gsub(/\xCE\xBC/, 'm')
     string = string.gsub(/\xD0\xA1/, 'c')
     string = string.gsub(/\xD0\xB1/, 's')
     string = string.gsub(/\xD0\xBC/, 'm')
     string = string.gsub(/\xD1\x85/, 'x')
+
 
 
     string = string.gsub(/\xE2\x80\x8E/, '->')
