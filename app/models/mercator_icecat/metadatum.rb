@@ -66,18 +66,16 @@ module MercatorIcecat
 
         model_name = product["Model_Name"].fix_utf8 if product["Model_Name"].present?
 
-        if metadatum.update(path:              product["path"],
-                            cat_id:            product["Catid"],
-                            icecat_product_id: product["Product_ID"],
-                            icecat_updated_at: product["Updated"],
-                            quality:           product["Quality"],
-                            supplier_id:       product["Supplier_id"],
-                            prod_id:           product["Prod_ID"],
-                            on_market:         product["On_Market"],
-                            model_name:        model_name,
-                            product_view:      product["Product_View"])
-          ::JobLogger.info("Metadatum " + product["Prod_ID"].to_s + mode)
-        else
+        unless metadatum.update(path:              product["path"],
+                                cat_id:            product["Catid"],
+                                icecat_product_id: product["Product_ID"],
+                                icecat_updated_at: product["Updated"],
+                                quality:           product["Quality"],
+                                supplier_id:       product["Supplier_id"],
+                                prod_id:           product["Prod_ID"],
+                                on_market:         product["On_Market"],
+                                model_name:        model_name,
+                                product_view:      product["Product_View"])
           ::JobLogger.error("Metadatum " + product["Prod_ID"].to_s + " could not be saved: " + metadatum.errors.first )
         end
       end
@@ -96,9 +94,7 @@ module MercatorIcecat
         metadata = self.where(prod_id: product.icecat_article_number)
         amount = metadata.count
         metadata.each_with_index do |metadatum, index|
-          if metadatum.update(product_id: product.id)
-            ::JobLogger.info("Product " + product.number.to_s + " assigned to " + metadatum.id.to_s + " (" + index.to_s + "/" + amount.to_s + ")")
-          else
+          unless metadatum.update(product_id: product.id)
             ::JobLogger.error("Product " + product.number.to_s + " assigned to " + metadatum.id.to_s)
           end
         end
@@ -118,9 +114,7 @@ module MercatorIcecat
 
       amount = metadata.count
       metadata.each_with_index do |metadatum, index|
-        if metadatum.download(overwrite: overwrite)
-          ::JobLogger.info("XML Metadatum " + metadatum.prod_id.to_s + " downloaded. (" + index.to_s + "/" + amount.to_s + ")")
-        else
+        unless metadatum.download(overwrite: overwrite)
           ::JobLogger.info("XML Metadatum " + metadatum.prod_id.to_s + " exists (no overwrite)!")
         end
       end
@@ -230,9 +224,7 @@ module MercatorIcecat
                                                name_de: name_de,
                                                name_en: name_en,
                                                position: icecat_id) # no better idea ...
-          if property_group.save
-            ::JobLogger.info("PropertyGroup " + icecat_id.to_s + " created.")
-          else
+          unless property_group.save
             ::JobLogger.error("PropertyGroup " + icecat_id.to_s + " could not be created: " + property_group.errors.first.to_s)
           end
         end
@@ -267,9 +259,7 @@ module MercatorIcecat
                                   name_de: name_de,
                                   name_en: name_en,
                                   datatype: icecat_value.icecat_datatype)
-          if property.save
-            ::JobLogger.info("Property " + property.id.to_s + " saved.")
-          else
+          unless property.save
             ::JobLogger.error("Property could not be saved:" + property.errors.first.to_s)
           end
         end
@@ -298,9 +288,7 @@ module MercatorIcecat
           value.unit_en = try_to { unit_en.fix_utf8 }
         end
 
-        if value.save
-          ::JobLogger.info("Value " + value.id.to_s + " saved.")
-        else
+        unless value.save
           ::JobLogger.error("Value could not be saved:" + value.errors.first)
         end
       end
@@ -309,13 +297,12 @@ module MercatorIcecat
 
     def delete_relations
       product = self.product
-      relations_count = product.productrelations.count
-      product.productrelations.destroy_all
-      supplies_count = product.supplyrelations.count
-      product.supplyrelations.destroy_all
-      ::JobLogger.info(relations_count.to_s + " Productrel., " +
-                       supplies_count.to_s + " Supplyrel. deleted for Product " + product.id.to_s +
-                       " Metadatum " + self.id.to_s)
+      unless product.productrelations.destroy_all
+        ::JobLogger.error("Productrelations for Product " + product.id.to_s + "could not be deleted!"
+      end
+      unless product.supplyrelations.destroy_all
+        ::JobLogger.error("Supplyrelations for Product " + product.id.to_s + "could not be deleted!"
+      end
     end
 
     def update_product_relations
@@ -347,12 +334,7 @@ module MercatorIcecat
         end
       end
 
-      if product.save(validate: false) # FIXME!: This time without validations ...
-        ::JobLogger.info("Product " + product.id.to_s + ": " +
-                         product.productrelations.count.to_s + " Productrel. " +
-                         product.supplyrelations.count.to_s + ", Supplyrel. created, " +
-                         unknown_products.to_s + " unknown.")
-      else
+      unless product.save(validate: false) # FIXME!: This time without validations ...
         ::JobLogger.error("Product " + product.id.to_s + " could not be updated")
       end
     end
@@ -378,9 +360,7 @@ module MercatorIcecat
 
         product.photo = io
 
-        if product.save(validate: false) # FIXME!: This time without validations ...
-          ::JobLogger.info("Image  " + path.split("/").last + " for Product " + product.id.to_s + " saved." )
-        else
+        unless product.save(validate: false) # FIXME!: This time without validations ...
           ::JobLogger.error("Image  " + path.split("/").last + " for Product " + product.id.to_s + " could not be saved!" )
         end
       rescue Exception => e
