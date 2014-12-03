@@ -298,10 +298,10 @@ module MercatorIcecat
     def delete_relations
       product = self.product
       unless product.productrelations.destroy_all
-        ::JobLogger.error("Productrelations for Product " + product.id.to_s + "could not be deleted!"
+        ::JobLogger.error("Productrelations for Product " + product.id.to_s + "could not be deleted!")
       end
       unless product.supplyrelations.destroy_all
-        ::JobLogger.error("Supplyrelations for Product " + product.id.to_s + "could not be deleted!"
+        ::JobLogger.error("Supplyrelations for Product " + product.id.to_s + "could not be deleted!")
       end
     end
 
