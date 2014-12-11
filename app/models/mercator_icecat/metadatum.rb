@@ -62,22 +62,19 @@ module MercatorIcecat
       # Hewlett Packard has Supplier_id = 1
       parser.for_tag("file").with_attribute("Supplier_id", "1").each do |product|
         metadatum = self.find_or_create_by_icecat_product_id(product["Product_ID"])
-        mode = Time.now - metadatum.created_at > 5 ? " updated." : " created."
 
         model_name = product["Model_Name"].fix_utf8 if product["Model_Name"].present?
-
-        unless metadatum.update(path:              product["path"],
-                                cat_id:            product["Catid"],
-                                icecat_product_id: product["Product_ID"],
-                                icecat_updated_at: product["Updated"],
-                                quality:           product["Quality"],
-                                supplier_id:       product["Supplier_id"],
-                                prod_id:           product["Prod_ID"],
-                                on_market:         product["On_Market"],
-                                model_name:        model_name,
-                                product_view:      product["Product_View"])
+        metadatum.update(path:              product["path"],
+                         cat_id:            product["Catid"],
+                         icecat_product_id: product["Product_ID"],
+                         icecat_updated_at: product["Updated"],
+                         quality:           product["Quality"],
+                         supplier_id:       product["Supplier_id"],
+                         prod_id:           product["Prod_ID"],
+                         on_market:         product["On_Market"],
+                         model_name:        model_name,
+                         product_view:      product["Product_View"]) or
           ::JobLogger.error("Metadatum " + product["Prod_ID"].to_s + " could not be saved: " + metadatum.errors.first )
-        end
       end
       file.close
     end
@@ -85,100 +82,79 @@ module MercatorIcecat
     def self.assign_products(only_missing: true)
       if only_missing
         products = Product.without_icecat_metadata
-        ::JobLogger.warn(products.count.to_s + " products without metadata.")
       else
         products = Product.all
       end
 
       products.each do |product|
         metadata = self.where(prod_id: product.icecat_article_number)
-        amount = metadata.count
         metadata.each_with_index do |metadatum, index|
-          unless metadatum.update(product_id: product.id)
-            ::JobLogger.error("Product " + product.number.to_s + " assigned to " + metadatum.id.to_s)
-          end
+          metadatum.update(product_id: product.id) or ::JobLogger.error("Product " + product.number.to_s + " assigned to " + metadatum.id.to_s)
         end
       end
-
-      products = Product.without_icecat_metadata
-      ::JobLogger.warn(products.count.to_s + " products without metadata.")
     end
 
     def self.download(overwrite: false, from_today: true)
       if from_today
-        @twentyfivehours = Time.now - 25.hours
-        metadata = self.where{ (product_id != nil) & (updated_at > my{@twentyfivehours})}
+        metadata = self.where{ (product_id != nil) & (updated_at > my{Time.now - 1.day})}
       else
         metadata = self.where{ product_id != nil }
       end
 
       amount = metadata.count
       metadata.each_with_index do |metadatum, index|
-        unless metadatum.download(overwrite: overwrite)
-          ::JobLogger.info("XML Metadatum " + metadatum.prod_id.to_s + " exists (no overwrite)!")
-        end
+        metadatum.download(overwrite: overwrite) or ::JobLogger.info("XML Metadatum " + metadatum.prod_id.to_s + " exists (no overwrite)!")
       end
     end
 
     def self.update_products(from_today: true)
+      metadata_who_lost_their_products = self.where{ product_id != nil }.where.not(product_id: Product.pluck("id"))
+      metadata_who_lost_their_products.update_all(product_id: nil) or ::JobLogger.error("Metadata who lost teir products cannot be updated!")
+
       if from_today
-        @twentyfivehours = Time.now - 25.hours
-        metadata = self.where{ (product_id != nil) & (updated_at > my{@twentyfivehours})}.order(id: :asc)
+        @yesterday = Time.now - 1.day
+        metadata = self.where{ (product_id != nil) & (updated_at > my{@yesterday})}.order(id: :asc)
       else
         metadata = self.where{ product_id != nil }.order(id: :asc)
       end
 
-      amount = metadata.count
-      metadata.each_with_index do |metadatum, index|
-        # if-clause is handy for resume after dump
-        metadatum.update_product # if metadatum.id >= 109279
-        ::JobLogger.info("(" + index.to_s + "/" + amount.to_s + ")")
-      end
+      # if-clause is handy for resume after dump
+      metadata.each{|metadatum| metadatum.update_product } # if metadatum.id >= 109279 }
     end
 
     def self.update_product_relations(from_today: true)
       if from_today
-        @twentyfivehours = Time.now - 25.hours
-        metadata = self.where{ (product_id != nil) & (updated_at > my{@twentyfivehours})}.order(id: :asc)
+        metadata = self.where{ (product_id != nil) & (updated_at > my{Time.now - 1.day})}.order(id: :asc)
       else
         metadata = self.where{ product_id != nil }.order(id: :asc)
       end
 
-      amount = metadata.count
-      metadata.each_with_index do |metadatum, index|
-        metadatum.update_product_relations
-        ::JobLogger.info("(" + index.to_s + "/" + amount.to_s + ")")
-      end
+      metadata.each{|metadatum| metadatum.update_product_relations}
     end
 
     def self.import_missing_images
       metadata = self.includes(:product).where{product.id != nil}
-                     .where{product.photo_file_name == nil}.references(:product).order(id: :asc)
-      metadata.each do |metadatum|
-        metadatum.import_missing_image
-      end
+                     .where{product.photo_file_name == nil}
+                     .references(:product)
+                     .order(id: :asc)
+      metadata.each{|metadatum| metadatum.import_missing_image }
     end
 
 
     # --- Instance Methods --- #
 
     def download(overwrite: false)
-      unless overwrite
-        return false if File.exist?(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml"))
+      if File.exist?(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml"))
+        return false unless overwrite
       end
 
-      unless self.path
-        return false
-      end
+      self.path or return false
 
       # force_encoding fixes: Encoding::UndefinedConversionError: "\xC3" from ASCII-8BIT to UTF-8
       begin
         io = open(Access::BASE_URL + "/" + self.path, Access.open_uri_options).read.force_encoding('UTF-8')
         file = File.new(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml"), "w")
-        io.each_line do |line|
-          file.write line
-        end
-
+        io.each_line{|line| file.write line}
         file.close
         return true
       rescue
@@ -218,15 +194,14 @@ module MercatorIcecat
         name_de ||= try_to { property_group_nodeset.xpath("FeatureGroup/Name")[0]["Value"].fix_utf8 }
                     # anything if neither German nor English available
 
-        property_group = ::PropertyGroup.find_by_icecat_id(icecat_id)
+        property_group = ::PropertyGroup.find_by(icecat_id: icecat_id)
+        # property_group = ::PropertyGroup.find_by(name_de: name_de)
         unless property_group
           property_group = ::PropertyGroup.new(icecat_id: icecat_id,
                                                name_de: name_de,
                                                name_en: name_en,
                                                position: icecat_id) # no better idea ...
-          unless property_group.save
-            ::JobLogger.error("PropertyGroup " + icecat_id.to_s + " could not be created: " + property_group.errors.first.to_s)
-          end
+          property_group.save or ::JobLogger.error("PropertyGroup " + icecat_id.to_s + " could not be created: " + property_group.errors.first.to_s)
         end
       end
 
@@ -250,24 +225,26 @@ module MercatorIcecat
         unit_de ||= try_to { feature.xpath("Feature/Measure/Signs/Sign")[0].content.fix_utf8 }
                     # anything if neither German nor English available
 
-        property_group = PropertyGroup.find_by_icecat_id(icecat_feature_group_id)
+        property_group = PropertyGroup.find_by(icecat_id: icecat_feature_group_id)
 
-        property = Property.where(icecat_id: icecat_feature_id).first
+        property = Property.find_by(icecat_id: icecat_feature_id)
         unless property
           property = Property.new(icecat_id: icecat_feature_id,
                                   position: icecat_feature_id,
                                   name_de: name_de,
                                   name_en: name_en,
                                   datatype: icecat_value.icecat_datatype)
-          unless property.save
-            ::JobLogger.error("Property could not be saved:" + property.errors.first.to_s)
-          end
+          property.save or ::JobLogger.error("Property could not be saved:" + property.errors.first.to_s)
         end
 
-        value = Value.where(property_group_id: property_group.id, property_id: property.id,
-                            product_id: product.id, state: icecat_value.icecat_datatype).first
+        value = Value.find_by(property_group_id: property_group.id,
+                              property_id: property.id,
+                              product_id: product.id,
+                              state: icecat_value.icecat_datatype)
         unless value
-          value = Value.new(property_group_id: property_group.id, property_id: property.id, product_id: product.id)
+          value = Value.new(property_group_id: property_group.id,
+                            property_id: property.id,
+                            product_id: product.id)
           value.state = icecat_value.icecat_datatype
         end
 
@@ -288,32 +265,18 @@ module MercatorIcecat
           value.unit_en = try_to { unit_en.fix_utf8 }
         end
 
-        unless value.save
-          ::JobLogger.error("Value could not be saved:" + value.errors.first)
-        end
-      end
-      ::JobLogger.info("=== Metadatum " + id.to_s + " updated Product " + product_id.to_s + " ===")
-    end
-
-    def delete_relations
-      product = self.product
-      unless product.productrelations.destroy_all
-        ::JobLogger.error("Productrelations for Product " + product.id.to_s + "could not be deleted!")
-      end
-      unless product.supplyrelations.destroy_all
-        ::JobLogger.error("Supplyrelations for Product " + product.id.to_s + "could not be deleted!")
+        value.save or ::JobLogger.error("Value could not be saved:" + value.errors.first)
       end
     end
 
     def update_product_relations
       file = open(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml")).read
       product_nodeset = Nokogiri::XML(file).xpath("//ICECAT-interface/Product")[0]
+
       product = self.product
-      cat_id = self.cat_id
+      product.productrelations.destroy_all
+      product.supplyrelations.destroy_all
 
-      self.delete_relations
-
-      unknown_products = 0
       icecat_ids = []
       product_nodeset.xpath("ProductRelated").each do |relation|
         icecat_ids << try_to { relation.xpath("Product")[0]["ID"].to_i }
@@ -324,19 +287,15 @@ module MercatorIcecat
         related_product_id = try_to { related_metadatum.product_id.to_i }
 
         if related_product_id > 0
-          if related_metadatum.cat_id == cat_id
+          if related_metadatum.cat_id == self.cat_id
             product.productrelations.new(related_product_id: related_product_id)
           else
             product.supplyrelations.new(supply_id: related_product_id)
           end
-        else
-          unknown_products += 1
         end
       end
 
-      unless product.save(validate: false) # FIXME!: This time without validations ...
-        ::JobLogger.error("Product " + product.id.to_s + " could not be updated")
-      end
+      product.save(validate: false) or ::JobLogger.error("Product " + product.id.to_s + " could not be updated")
     end
 
     def import_missing_image
@@ -347,11 +306,7 @@ module MercatorIcecat
       return nil if product.photo_file_name # no overwriting intended
 
       path = product_nodeset["HighPic"]
-
-      if path.empty?
-        ::JobLogger.warn("no Image available for Product " + product.id.to_s)
-        return nil # no image available
-      end
+      return nil if path.empty? # no image available
 
       begin
         io = StringIO.new(open(path, Access.open_uri_options).read)
@@ -359,15 +314,11 @@ module MercatorIcecat
         io.original_filename = path.split("/").last
 
         product.photo = io
-
-        unless product.save(validate: false) # FIXME!: This time without validations ...
-          ::JobLogger.error("Image  " + path.split("/").last + " for Product " + product.id.to_s + " could not be saved!" )
-        end
+        product.save(validate: false) or ::JobLogger.error("Image  " + path.split("/").last + " for Product " + product.id.to_s + " could not be saved!" )
       rescue Exception => e
         ::JobLogger.warn("Image  " + path + " could not be loaded!" )
         ::JobLogger.warn(e)
       end
     end
-
   end
 end

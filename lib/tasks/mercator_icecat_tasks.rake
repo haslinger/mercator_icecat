@@ -158,6 +158,14 @@ namespace :icecat do
       MercatorIcecat::Metadatum.import_missing_images
       ::JobLogger.info("Finished Task: icecat:metadata:import_missing_images")
 
+      ::JobLogger.info("Started Task: properties:dedup")
+      ::Property.dedup()
+      ::JobLogger.info("Finished Task: properties:dedup")
+
+      ::JobLogger.info("Started Task: property_groups:dedup")
+      ::PropertyGroup.dedup()
+      ::JobLogger.info("Finished Task: property_groups:dedup")
+
       ::JobLogger.info("Finished Job: icecat:catalog:daily_update")
       ::JobLogger.info("=" * 50)
     end
