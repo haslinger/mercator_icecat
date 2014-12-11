@@ -195,7 +195,6 @@ module MercatorIcecat
                     # anything if neither German nor English available
 
         property_group = ::PropertyGroup.find_by(icecat_id: icecat_id)
-        # property_group = ::PropertyGroup.find_by(name_de: name_de)
         unless property_group
           property_group = ::PropertyGroup.new(icecat_id: icecat_id,
                                                name_de: name_de,
