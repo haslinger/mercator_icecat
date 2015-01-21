@@ -1,4 +1,9 @@
 class String
+
+  def fix_icecat
+    self.fix_utf8.gsub!("\\n", "")
+  end
+
   def fix_utf8
     string = self
     string = string.gsub(/\xC4\xB1/, 'i')
