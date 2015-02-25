@@ -63,7 +63,7 @@ module MercatorIcecat
       parser.for_tag("file").with_attribute("Supplier_id", "1").each do |product|
         metadatum = self.find_or_create_by_icecat_product_id(product["Product_ID"])
 
-        model_name = product["Model_Name"].fix_utf8 if product["Model_Name"].present?
+        model_name = product["Model_Name"] if product["Model_Name"].present?
         metadatum.update(path:              product["path"],
                          cat_id:            product["Catid"],
                          icecat_product_id: product["Product_ID"],
@@ -188,10 +188,10 @@ module MercatorIcecat
       property_groups_nodeset = product_nodeset.xpath("CategoryFeatureGroup")
       property_groups_nodeset.each do |property_group_nodeset|
         icecat_id = property_group_nodeset["ID"]
-        name_en = try_to { property_group_nodeset.xpath("FeatureGroup/Name[@langid='1']")[0]["Value"].fix_utf8 }
-        name_de = try_to { property_group_nodeset.xpath("FeatureGroup/Name[@langid='4']")[0]["Value"].fix_utf8 }
+        name_en = try_to { property_group_nodeset.xpath("FeatureGroup/Name[@langid='1']")[0]["Value"] }
+        name_de = try_to { property_group_nodeset.xpath("FeatureGroup/Name[@langid='4']")[0]["Value"] }
         name_de ||= name_en # English, if German not available
-        name_de ||= try_to { property_group_nodeset.xpath("FeatureGroup/Name")[0]["Value"].fix_utf8 }
+        name_de ||= try_to { property_group_nodeset.xpath("FeatureGroup/Name")[0]["Value"] }
                     # anything if neither German nor English available
 
         property_group = ::PropertyGroup.find_by(icecat_id: icecat_id)
@@ -213,15 +213,15 @@ module MercatorIcecat
         icecat_value = feature["Value"]
         icecat_feature_group_id = feature["CategoryFeatureGroup_ID"]
 
-        name_en = try_to { feature.xpath("Feature/Name[@langid='1']")[0]["Value"].fix_utf8 }
-        name_de = try_to { feature.xpath("Feature/Name[@langid='4']")[0]["Value"].fix_utf8 }
+        name_en = try_to { feature.xpath("Feature/Name[@langid='1']")[0]["Value"] }
+        name_de = try_to { feature.xpath("Feature/Name[@langid='4']")[0]["Value"] }
         name_de ||= name_en # English, if German not available
-        name_de ||= try_to { feature.xpath("Feature/Name")[0]["Value"].fix_utf8 } # anything if neither German nor English available
+        name_de ||= try_to { feature.xpath("Feature/Name")[0]["Value"] } # anything if neither German nor English available
 
-        unit_en = try_to { feature.xpath("Feature/Measure/Signs/Sign[@langid='1']")[0].content.fix_utf8 }
-        unit_de = try_to { feature.xpath("Feature/Measure/Signs/Sign[@langid='4']")[0].content.fix_utf8 }
+        unit_en = try_to { feature.xpath("Feature/Measure/Signs/Sign[@langid='1']")[0].content }
+        unit_de = try_to { feature.xpath("Feature/Measure/Signs/Sign[@langid='4']")[0].content }
         unit_de ||= unit_en # English, if German not available
-        unit_de ||= try_to { feature.xpath("Feature/Measure/Signs/Sign")[0].content.fix_utf8 }
+        unit_de ||= try_to { feature.xpath("Feature/Measure/Signs/Sign")[0].content }
                     # anything if neither German nor English available
 
         property_group = PropertyGroup.find_by(icecat_id: icecat_feature_group_id)
@@ -253,15 +253,15 @@ module MercatorIcecat
 
         if icecat_value.icecat_datatype == "numeric"
           value.amount = icecat_value.to_f
-          value.unit_de = try_to { unit_de.fix_utf8 }
-          value.unit_en = try_to { unit_en.fix_utf8 }
+          value.unit_de = try_to { unit_de }
+          value.unit_en = try_to { unit_en }
         end
 
         if icecat_value.icecat_datatype == "textual"
-          value.title_de = try_to { icecat_value.truncate(252).fix_utf8 }
-          value.title_en = try_to { icecat_value.truncate(252).fix_utf8 }
-          value.unit_de = try_to { unit_de.fix_utf8 }
-          value.unit_en = try_to { unit_en.fix_utf8 }
+          value.title_de = try_to { icecat_value.truncate(252) }
+          value.title_en = try_to { icecat_value.truncate(252) }
+          value.unit_de = try_to { unit_de }
+          value.unit_en = try_to { unit_en }
         end
 
         value.save or ::JobLogger.error("Value could not be saved:" + value.errors.first)
