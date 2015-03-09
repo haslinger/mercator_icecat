@@ -2,7 +2,6 @@
 
 require 'saxerator'
 require 'open-uri'
-require 'string_extensions'
 
 module MercatorIcecat
   class Metadatum < ActiveRecord::Base
