@@ -2,6 +2,7 @@
 
 require 'saxerator'
 require 'open-uri'
+require 'string_extensions'
 
 module MercatorIcecat
   class Metadatum < ActiveRecord::Base
@@ -169,6 +170,7 @@ module MercatorIcecat
       product = self.product
 
       description_de = try_to { product_nodeset.xpath("ProductDescription[@langid='4']")[0]["ShortDesc"].fix_icecat }
+      debugger
       description_en = try_to { product_nodeset.xpath("ProductDescription[@langid='1']")[0]["ShortDesc"].fix_icecat }
       long_description_de = try_to { product_nodeset.xpath("ProductDescription[@langid='4']")[0]["LongDesc"].fix_icecat }
       long_description_en = try_to { product_nodeset.xpath("ProductDescription[@langid='1']")[0]["LongDesc"].fix_icecat }

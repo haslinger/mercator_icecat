@@ -1,7 +1,7 @@
 class String
 
   def fix_icecat
-    self.gsub!("\\n", "")
+    self.gsub("\\n", "")
   end
 
   def icecat_datatype
