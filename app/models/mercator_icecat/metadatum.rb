@@ -165,7 +165,13 @@ module MercatorIcecat
 
     def update_product
       # :en => lang_id = 1, :de => lang_id = 4
-      file = open(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml")).read
+      begin
+        file = open(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml")).read
+      rescue
+        ::JobLogger.error("File not available: " + Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml").to_s)
+        return false
+      end
+
       product_nodeset = Nokogiri::XML(file).xpath("//ICECAT-interface/Product")[0]
       product = self.product
 
