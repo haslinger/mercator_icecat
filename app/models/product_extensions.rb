@@ -28,7 +28,9 @@ module ProductExtensions
 
   def download_icecat
     metadatum = MercatorIcecat::Metadatum.find_by_product_id(self.id)
-    metadatum.download(overwrite: true)
-    metadatum.update_product
+    if metadatum
+      metadatum.download(overwrite: true)
+      metadatum.update_product
+    end
   end
 end
