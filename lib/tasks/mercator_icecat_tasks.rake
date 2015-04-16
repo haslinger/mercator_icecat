@@ -7,7 +7,7 @@ namespace :icecat do
 
       ::JobLogger.info("=" * 50)
       ::JobLogger.info("Started Job: icecat:metadata:import_full")
-      MercatorIcecat::Metadatum.import(full: true)
+      MercatorIcecat::Metadatum.import_catalog(full: true)
       ::JobLogger.info("Finished Job: icecat:metadata:import_full")
       ::JobLogger.info("=" * 50)
     end
@@ -18,7 +18,7 @@ namespace :icecat do
 
       ::JobLogger.info("=" * 50)
       ::JobLogger.info("Started Job: icecat:metadata:import_daily")
-      MercatorIcecat::Metadatum.import(date: Date.today)
+      MercatorIcecat::Metadatum.import_catalog(date: Date.today)
       ::JobLogger.info("Finished Job: icecat:metadata:import_daily")
       ::JobLogger.info("=" * 50)
     end
@@ -62,7 +62,7 @@ namespace :icecat do
 
       ::JobLogger.info("=" * 50)
       ::JobLogger.info("Started Job: icecat:metadata:update_products")
-      MercatorIcecat::Metadatum.update_products(from_today: false)
+      ::Product.update_from_icecat(from_today: false)
       ::JobLogger.info("Finished Job: icecat:metadata:update_products")
       ::JobLogger.info("=" * 50)
     end
@@ -73,41 +73,8 @@ namespace :icecat do
 
       ::JobLogger.info("=" * 50)
       ::JobLogger.info("Started Job: icecat:metadata:update_todays_products")
-      MercatorIcecat::Metadatum.update_products(from_today: true)
+      ::Product.update_from_icecat(from_today: true)
       ::JobLogger.info("Finished Job: icecat:metadata:update_todays_products")
-      ::JobLogger.info("=" * 50)
-    end
-
-    # starten als: bundle exec rake icecat:metadata:update_product_relations RAILS_ENV=production
-    desc 'Update product relations from downloaded XML files.'
-    task :update_product_relations => :environment do
-
-      ::JobLogger.info("=" * 50)
-      ::JobLogger.info("Started Job: icecat:metadata:update_product_relations")
-      MercatorIcecat::Metadatum.update_product_relations(from_today: false)
-      ::JobLogger.info("Finished Job: icecat:metadata:update_product_relations")
-      ::JobLogger.info("=" * 50)
-    end
-
-    # starten als: bundle exec rake icecat:metadata:update_todays_product_relations RAILS_ENV=production
-    desc 'Update todays product relations from downloaded XML files.'
-    task :update_todays_product_relations => :environment do
-
-      ::JobLogger.info("=" * 50)
-      ::JobLogger.info("Started Job: icecat:metadata:update_todays_product_relations")
-      MercatorIcecat::Metadatum.update_product_relations(from_today: true)
-      ::JobLogger.info("Finished Job: icecat:metadata:update_todays_product_relations")
-      ::JobLogger.info("=" * 50)
-    end
-
-    # starten als: bundle exec rake icecat:metadata:import_missing_images RAILS_ENV=production
-    desc 'Import missing imiages.'
-    task :import_missing_images => :environment do
-
-      ::JobLogger.info("=" * 50)
-      ::JobLogger.info("Started Job: icecat:metadata:import_missing_images")
-      MercatorIcecat::Metadatum.import_missing_images
-      ::JobLogger.info("Finished Job: icecat:metadata:import_missing_images")
       ::JobLogger.info("=" * 50)
     end
 
@@ -136,16 +103,8 @@ namespace :icecat do
       ::JobLogger.info("Finished Task: icecat:metadata:download_daily_xml")
 
       ::JobLogger.info("Started Task: icecat:metadata:update_todays_products")
-      MercatorIcecat::Metadatum.update_products(from_today: true)
+      ::Product.update_from_icecat(from_today: true)
       ::JobLogger.info("Finished Task: icecat:metadata:update_todays_products")
-
-      ::JobLogger.info("Started Task: icecat:metadata:update_product_relations")
-      MercatorIcecat::Metadatum.update_product_relations(from_today: true)
-      ::JobLogger.info("Finished Task: icecat:metadata:update_product_relations")
-
-      ::JobLogger.info("Started Task: icecat:metadata:import_missing_images")
-      MercatorIcecat::Metadatum.import_missing_images
-      ::JobLogger.info("Finished Task: icecat:metadata:import_missing_images")
 
       ::JobLogger.info("Started Task: properties:dedup")
       ::Property.dedup()

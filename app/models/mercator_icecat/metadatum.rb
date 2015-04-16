@@ -48,7 +48,7 @@ module MercatorIcecat
 
     # --- Class Methods --- #
 
-    def self.import(full: false, date: Date.today)
+    def self.import_catalog(full: false, date: Date.today)
       if full
         file = File.open(Rails.root.join("vendor","catalogs","files.index.xml"), "r")
       else
@@ -89,7 +89,11 @@ module MercatorIcecat
       products.each do |product|
         metadata = self.where(prod_id: product.icecat_article_number)
         metadata.each_with_index do |metadatum, index|
-          metadatum.update(product_id: product.id) or ::JobLogger.error("Product " + product.number.to_s + " assigned to " + metadatum.id.to_s)
+          if metadatum.update(product_id: product.id)
+            puts "Assigning " + product.number
+          else
+            ::JobLogger.error("Product " + product.number.to_s + " assigned to " + metadatum.id.to_s)
+          end
         end
       end
     end
@@ -103,43 +107,13 @@ module MercatorIcecat
 
       amount = metadata.count
       metadata.each_with_index do |metadatum, index|
-        metadatum.download(overwrite: overwrite) or ::JobLogger.info("XML Metadatum " + metadatum.prod_id.to_s + " exists (no overwrite)!")
+        if metadatum.download(overwrite: overwrite)
+          puts "Downloading " + metadatum.prod_id.to_s
+        else
+          puts ("XML Metadatum " + metadatum.prod_id.to_s + " exists (no overwrite)!")
+        end
       end
     end
-
-    def self.update_products(from_today: true)
-      metadata_who_lost_their_products = self.where{ product_id != nil }.where.not(product_id: Product.pluck("id"))
-      metadata_who_lost_their_products.update_all(product_id: nil) or ::JobLogger.error("Metadata who lost teir products cannot be updated!")
-
-      if from_today
-        @yesterday = Time.now - 1.day
-        metadata = self.where{ (product_id != nil) & (updated_at > my{@yesterday})}.order(id: :asc)
-      else
-        metadata = self.where{ product_id != nil }.order(id: :asc)
-      end
-
-      # if-clause is handy for resume after dump
-      metadata.each{|metadatum| metadatum.update_product } # if metadatum.id >= 109279 }
-    end
-
-    def self.update_product_relations(from_today: true)
-      if from_today
-        metadata = self.where{ (product_id != nil) & (updated_at > my{Time.now - 1.day})}.order(id: :asc)
-      else
-        metadata = self.where{ product_id != nil }.order(id: :asc)
-      end
-
-      metadata.each{|metadatum| metadatum.update_product_relations}
-    end
-
-    def self.import_missing_images
-      metadata = self.includes(:product).where{product.id != nil}
-                     .where{product.photo_file_name == nil}
-                     .references(:product)
-                     .order(id: :asc)
-      metadata.each{|metadatum| metadatum.import_missing_image }
-    end
-
 
     # --- Instance Methods --- #
 
@@ -163,7 +137,7 @@ module MercatorIcecat
       end
     end
 
-    def update_product
+    def update_product(product: nil)
       # :en => lang_id = 1, :de => lang_id = 4
       begin
         file = open(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml")).read
@@ -173,7 +147,8 @@ module MercatorIcecat
       end
 
       product_nodeset = Nokogiri::XML(file).xpath("//ICECAT-interface/Product")[0]
-      product = self.product
+      # The reason for having a product function param is that several products could belong to the same Metadatum)
+      product ||= self.product
 
       description_de = try_to { product_nodeset.xpath("ProductDescription[@langid='4']")[0]["ShortDesc"].fix_icecat }
       description_en = try_to { product_nodeset.xpath("ProductDescription[@langid='1']")[0]["ShortDesc"].fix_icecat }
@@ -274,11 +249,17 @@ module MercatorIcecat
       end
     end
 
-    def update_product_relations
-      file = open(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml")).read
+    def update_product_relations(product: nil)
+      begin
+        file = open(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml")).read
+      rescue
+        ::JobLogger.error("File not available: " + Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml").to_s)
+        return false
+      end
+
       product_nodeset = Nokogiri::XML(file).xpath("//ICECAT-interface/Product")[0]
 
-      product = self.product
+      product ||= self.product
       product.productrelations.destroy_all
       product.supplyrelations.destroy_all
 
@@ -303,11 +284,11 @@ module MercatorIcecat
       product.save(validate: false) or ::JobLogger.error("Product " + product.id.to_s + " could not be updated")
     end
 
-    def import_missing_image
+    def import_missing_image(product: nil)
       file = open(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml")).read
       product_nodeset = Nokogiri::XML(file).xpath("//ICECAT-interface/Product")[0]
 
-      product = self.product
+      product||= self.product
       return nil if product.photo_file_name # no overwriting intended
 
       path = product_nodeset["HighPic"]
