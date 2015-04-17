@@ -49,5 +49,6 @@ module ProductExtensions
     metadatum.update_product_relations(product: self)
 
     metadatum.import_missing_image(product: self) unless self.photo_file_name
+    return true #Just to see, if we are done
   end
 end

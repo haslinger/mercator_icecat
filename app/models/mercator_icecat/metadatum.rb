@@ -285,7 +285,13 @@ module MercatorIcecat
     end
 
     def import_missing_image(product: nil)
-      file = open(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml")).read
+      begin
+        file = open(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml")).read
+      rescue
+        ::JobLogger.error("File not available: " + Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml").to_s)
+        return false
+      end
+
       product_nodeset = Nokogiri::XML(file).xpath("//ICECAT-interface/Product")[0]
 
       product||= self.product
