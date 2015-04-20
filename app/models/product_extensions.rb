@@ -20,8 +20,14 @@ module ProductExtensions
 
   # FIXME! HAS 20140413 This is highly customer specific
   def icecat_article_number
-    self.number =~ /^HP-(.+)$/
-    self.alternative_number || $1 || self.number
+    if self.alternative_number.present?
+      return self.alternative_number
+    elsif
+      self.number =~ /^HP-(.+)$/
+      $1
+    else
+      self.number
+    end
   end
 
   def icecat_vendor
