@@ -11,7 +11,7 @@ module ProductExtensions
 
     def self.update_from_icecat(from_today: true)
       Product.all.each_with_index do |product, index|
-        puts "Nummer: " + index.to_s
+        # puts "Nummer: " + index.to_s
         product.update_from_icecat(from_today: from_today)
       end
     end
@@ -34,7 +34,7 @@ module ProductExtensions
 
 
   def icecat_vendor
-    self.article_number =~ /^HP-(.+)$/
+    self.number =~ /^HP-(.+)$/ || self.alternative_number =~ /^HP-(.+)$/
     $1 ? "1" : nil
   end
 
@@ -45,21 +45,21 @@ module ProductExtensions
 
 
   def update_from_icecat(from_today: true)
-    metadatum = MercatorIcecat::Metadatum.find_by_prod_id(self.icecat_article_number)
-    return unless metadatum
+    @metadatum = MercatorIcecat::Metadatum.find_by_prod_id(self.icecat_article_number)
+    return unless @metadatum
 
     if from_today
-      return unless metadatum.updated_at > Time.now - 1.day
+      return unless @metadatum.updated_at > Time.now - 1.day
     end
 
-    puts "Download " + number + " from Icecat."
-    metadatum.download(overwrite: true)
-    puts "Updating product relations."
-    metadatum.update_product(product: self)
-    puts "Updating product."
-    metadatum.update_product_relations(product: self)
+#    puts "Download " + number + " from Icecat."
+    @metadatum.download(overwrite: true)
+#    puts "Updating product relations."
+    @metadatum.update_product(product: self)
+#    puts "Updating product."
+    @metadatum.update_product_relations(product: self)
 
-    metadatum.import_missing_image(product: self) unless self.photo_file_name
+    @metadatum.import_missing_image(product: self) unless self.photo_file_name
     return true #Just to see, if we are done
   end
 end

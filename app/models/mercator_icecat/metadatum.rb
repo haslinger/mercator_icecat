@@ -10,7 +10,7 @@ module MercatorIcecat
     hobo_model # Don't put anything above this
 
     fields do
-      path              :string
+      path              :string, :required
       icecat_updated_at :datetime
       quality           :string
       supplier_id       :string
@@ -24,7 +24,8 @@ module MercatorIcecat
       timestamps
     end
     attr_accessible :path, :cat_id, :product_id, :icecat_updated_at, :quality, :supplier_id,
-                    :prod_id, :on_market, :model_name, :product_view, :icecat_product_id
+                    :prod_id, :on_market, :model_name, :product_view, :icecat_product_id,
+                    :product_number, :updated_at
 
     belongs_to :product, :class_name => "Product"
 
