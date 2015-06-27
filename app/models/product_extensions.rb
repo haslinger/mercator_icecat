@@ -8,6 +8,7 @@ module ProductExtensions
 
     scope :without_icecat_metadata, -> { includes(:icecat_metadata ).where( icecat_metadata: { product_id: nil } ) }
 
+
     def self.update_from_icecat(from_today: true)
       Product.all.each_with_index do |product, index|
         puts "Nummer: " + index.to_s
@@ -15,6 +16,7 @@ module ProductExtensions
       end
     end
   end
+
 
   # --- Instance Methods --- #
 
@@ -30,14 +32,17 @@ module ProductExtensions
     end
   end
 
+
   def icecat_vendor
     self.article_number =~ /^HP-(.+)$/
     $1 ? "1" : nil
   end
 
+
   def icecat_product_id
     icecat_metadata.first.icecat_product_id if icecat_metadata.any?
   end
+
 
   def update_from_icecat(from_today: true)
     metadatum = MercatorIcecat::Metadatum.find_by_prod_id(self.icecat_article_number)
