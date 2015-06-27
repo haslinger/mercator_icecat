@@ -23,11 +23,13 @@ module MercatorIcecat
       product_view      :string
       timestamps
     end
+
     attr_accessible :path, :cat_id, :product_id, :icecat_updated_at, :quality, :supplier_id,
                     :prod_id, :on_market, :model_name, :product_view, :icecat_product_id,
                     :product_number, :updated_at
 
     belongs_to :product, :class_name => "Product"
+
 
     # --- Permissions --- #
 
@@ -46,6 +48,7 @@ module MercatorIcecat
     def view_permitted?(field)
       true
     end
+
 
     # --- Class Methods --- #
 
@@ -74,11 +77,12 @@ module MercatorIcecat
                          prod_id:           product["Prod_ID"],
                          on_market:         product["On_Market"],
                          model_name:        model_name,
-                         product_view:      product["Product_View"]) or
-          ::JobLogger.error("Metadatum " + product["Prod_ID"].to_s + " could not be saved: " + metadatum.errors.first )
+                         product_view:      product["Product_View"]) \
+        or ::JobLogger.error("Metadatum " + product["Prod_ID"].to_s + " could not be saved: " + metadatum.errors.first )
       end
       file.close
     end
+
 
     def self.assign_products(only_missing: true)
       if only_missing
@@ -99,6 +103,7 @@ module MercatorIcecat
       end
     end
 
+
     def self.download(overwrite: false, from_today: true)
       if from_today
         metadata = self.where{ (product_id != nil) & (updated_at > my{Time.now - 1.day})}
@@ -115,6 +120,7 @@ module MercatorIcecat
         end
       end
     end
+
 
     # --- Instance Methods --- #
 
@@ -137,6 +143,7 @@ module MercatorIcecat
         return false
       end
     end
+
 
     def update_product(product: nil)
       # :en => lang_id = 1, :de => lang_id = 4
@@ -250,6 +257,7 @@ module MercatorIcecat
       end
     end
 
+
     def update_product_relations(product: nil)
       begin
         file = open(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml")).read
@@ -284,6 +292,7 @@ module MercatorIcecat
 
       product.save(validate: false) or ::JobLogger.error("Product " + product.id.to_s + " could not be updated")
     end
+
 
     def import_missing_image(product: nil)
       begin

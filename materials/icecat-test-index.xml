@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ICECAT-interface SYSTEM "http://data.icecat.biz/dtd/files.index.dtd">
+<!-- source: Icecat.biz 2015 -->
+
+<ICECAT-interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://data.icecat.biz/xsd/files.index.xsd">
+  <files.index Generated="20150627015831">
+    <file path="export/freexml.int/INT/28461642.xml" Product_ID="28461642" Updated="20150626061319" Quality="ICECAT" Supplier_id="1" Prod_ID="K5A38AA#ABB" Catid="222" On_Market="1" Model_Name="24uh" Product_View="485" HighPic="http://images.icecat.biz/img/gallery/25904351_0091.jpg" HighPicSize="718587" HighPicWidth="1560" HighPicHeight="1144" Date_Added="20150616000000">
+      <Country_Markets>
+        <Country_Market Value="DE" />
+      </Country_Markets>
+    </file>
+  </files.index>
+</ICECAT-interface>
