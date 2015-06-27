@@ -94,11 +94,8 @@ module MercatorIcecat
       products.each do |product|
         metadata = self.where(prod_id: product.icecat_article_number)
         metadata.each_with_index do |metadatum, index|
-          if metadatum.update(product_id: product.id)
-            puts "Assigning " + product.number
-          else
-            ::JobLogger.error("Product " + product.number.to_s + " assigned to " + metadatum.id.to_s)
-          end
+          metadatum.update(product_id: product.id) \
+          or ::JobLogger.error("Product " + product.number.to_s + " assigned to " + metadatum.id.to_s)
         end
       end
     end
@@ -113,11 +110,8 @@ module MercatorIcecat
 
       amount = metadata.count
       metadata.each_with_index do |metadatum, index|
-        if metadatum.download(overwrite: overwrite)
-          puts "Downloading " + metadatum.prod_id.to_s
-        else
-          puts ("XML Metadatum " + metadatum.prod_id.to_s + " exists (no overwrite)!")
-        end
+        metadatum.download(overwrite: overwrite) \
+        or ::JobLogger.error ("XML Metadatum " + metadatum.prod_id.to_s + " exists (no overwrite)!")
       end
     end
 
