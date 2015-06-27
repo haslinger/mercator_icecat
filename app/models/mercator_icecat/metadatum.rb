@@ -310,7 +310,8 @@ module MercatorIcecat
         io.original_filename = path.split("/").last
 
         product.photo = io
-        product.save(validate: false) or ::JobLogger.error("Image  " + path.split("/").last + " for Product " + product.id.to_s + " could not be saved!" )
+        product.save(validate: false) \
+        or ::JobLogger.error("Image  " + path.split("/").last + " for Product " + product.id.to_s + " could not be saved!" )
       rescue Exception => e
         ::JobLogger.warn("Image  " + path + " could not be loaded!" )
         ::JobLogger.warn(e)
