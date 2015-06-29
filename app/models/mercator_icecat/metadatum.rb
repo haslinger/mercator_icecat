@@ -65,7 +65,7 @@ module MercatorIcecat
 
       # Hewlett Packard has Supplier_id = 1
       parser.for_tag("file").with_attribute("Supplier_id", "1").each do |product|
-        metadatum = self.find_or_create_by_icecat_product_id(product["Product_ID"])
+        metadatum = self.find_or_create_by(icecat_product_id: product["Product_ID"])
 
         model_name = product["Model_Name"] if product["Model_Name"].present?
         metadatum.update(path:              product["path"],
