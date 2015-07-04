@@ -20,11 +20,11 @@ module ProductExtensions
 
   # --- Instance Methods --- #
 
-  # FIXME! HAS 20140413 This is highly customer specific
   def icecat_article_number
     if self.alternative_number.present?
       return self.alternative_number
     elsif
+      # HAS 20140413 This is HP-specific
       self.number =~ /^HP-(.+)$/
       $1
     else
@@ -34,6 +34,7 @@ module ProductExtensions
 
 
   def icecat_vendor
+    # HAS 20140413 This is HP-specific
     self.number =~ /^HP-(.+)$/ || self.alternative_number =~ /^HP-(.+)$/
     $1 ? "1" : nil
   end
