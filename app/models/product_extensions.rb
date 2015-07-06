@@ -9,9 +9,16 @@ module ProductExtensions
     scope :without_icecat_metadata, -> { includes(:icecat_metadata ).where( icecat_metadata: { product_id: nil } ) }
 
 
-    def self.update_from_icecat(from_today: true)
-      Product.all.each_with_index do |product, index|
-        # puts "Nummer: " + index.to_s
+    def self.update_from_icecat(from_today: true, only_missing: false)
+      if only_missing
+        @products = Product.includes(:values).where( :values => { :product_id => nil } )
+        # puts "Updating " + @products.count.to_s + " products without values ..."
+      else
+        @products = Product.all
+      end
+
+      @products.each_with_index do |product, index|
+        # puts "Number: " + index.to_s
         product.update_from_icecat(from_today: from_today)
       end
     end
