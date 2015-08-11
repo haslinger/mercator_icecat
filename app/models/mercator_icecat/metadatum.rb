@@ -108,10 +108,8 @@ module MercatorIcecat
         metadata = self.where{ product_id != nil }
       end
 
-      amount = metadata.count
       metadata.each_with_index do |metadatum, index|
-        metadatum.download(overwrite: overwrite) \
-        or ::JobLogger.error ("XML Metadatum " + metadatum.prod_id.to_s + " exists (no overwrite)!")
+        metadatum.download(overwrite: overwrite)
       end
     end
 
@@ -120,10 +118,16 @@ module MercatorIcecat
 
     def download(overwrite: false)
       if File.exist?(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml"))
-        return false unless overwrite
+        unless overwrite
+          ::JobLogger.error ("XML Metadatum " + prod_id.to_s + " exists (no overwrite)!")
+          return false
+        end
       end
 
-      self.path or return false
+      unless self.path
+        ::JobLogger.error ("Path missing for" + prod_id.to_s)
+        return false
+      end
 
       # force_encoding fixes: Encoding::UndefinedConversionError: "\xC3" from ASCII-8BIT to UTF-8
       begin
@@ -131,10 +135,8 @@ module MercatorIcecat
         file = File.new(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml"), "w")
         io.each_line{|line| file.write line}
         file.close
-        return true
       rescue
         ::JobLogger.error("Download error: " + Access::BASE_URL + "/" + self.path)
-        return false
       end
     end
 
