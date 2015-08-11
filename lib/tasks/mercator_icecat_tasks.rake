@@ -91,7 +91,7 @@ namespace :icecat do
       ::JobLogger.info("Finished Task: icecat:catalog:download_daily")
 
       ::JobLogger.info("Started Task: icecat:metadata:import_daily")
-      MercatorIcecat::Metadatum.import(date: Date.today)
+      MercatorIcecat::Metadatum.import_catalog(date: Date.today)
       ::JobLogger.info("Finished Task: icecat:metadata:import_daily")
 
       ::JobLogger.info("Started Task: icecat:metadata:assign_products")
