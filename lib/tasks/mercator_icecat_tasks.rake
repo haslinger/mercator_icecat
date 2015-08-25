@@ -90,9 +90,9 @@ namespace :icecat do
       MercatorIcecat::Access.download_index(full: false)
       ::JobLogger.info("Finished Task: icecat:catalog:download_daily")
 
-      ::JobLogger.info("Started Task: icecat:metadata:import_daily")
+      ::JobLogger.info("Started Task: icecat:metadata:import_full")
       MercatorIcecat::Metadatum.import_catalog(date: Date.today)
-      ::JobLogger.info("Finished Task: icecat:metadata:import_daily")
+      ::JobLogger.info("Finished Task: icecat:metadata:import_full")
 
       ::JobLogger.info("Started Task: icecat:metadata:assign_products")
       MercatorIcecat::Metadatum.assign_products(only_missing: true)
@@ -115,6 +115,45 @@ namespace :icecat do
       ::JobLogger.info("Finished Task: property_groups:dedup")
 
       ::JobLogger.info("Finished Job: icecat:catalog:daily_update")
+      ::JobLogger.info("=" * 50)
+    end
+
+
+    # starten als: bundle exec rake icecat:metadata:weekly_full_update RAILS_ENV=production
+    desc 'Weekly full icecat update'
+    task :weekly_full_update => :environment do
+      ::JobLogger.info("=" * 50)
+      ::JobLogger.info("Started Job: icecat:catalog:weekly_full_update")
+
+      ::JobLogger.info("Started Task: icecat:catalog:download_full")
+      MercatorIcecat::Access.download_index(full: true)
+      ::JobLogger.info("Finished Task: icecat:catalog:download_full")
+
+      ::JobLogger.info("Started Task: icecat:metadata:import_daily")
+      MercatorIcecat::Metadatum.import_catalog(full: true)
+      ::JobLogger.info("Finished Task: icecat:metadata:import_daily")
+
+      ::JobLogger.info("Started Task: icecat:metadata:assign_products")
+      MercatorIcecat::Metadatum.assign_products(only_missing: true)
+      ::JobLogger.info("Finished Task: icecat:metadata:assign_products")
+
+      ::JobLogger.info("Started Task: icecat:metadata:download_daily_xml")
+      MercatorIcecat::Metadatum.download(overwrite: true, from_today: true)
+      ::JobLogger.info("Finished Task: icecat:metadata:download_daily_xml")
+
+      ::JobLogger.info("Started Task: icecat:metadata:update_todays_products")
+      ::Product.update_from_icecat(from_today: true)
+      ::JobLogger.info("Finished Task: icecat:metadata:update_todays_products")
+
+      ::JobLogger.info("Started Task: properties:dedup")
+      ::Property.dedup()
+      ::JobLogger.info("Finished Task: properties:dedup")
+
+      ::JobLogger.info("Started Task: property_groups:dedup")
+      ::PropertyGroup.dedup()
+      ::JobLogger.info("Finished Task: property_groups:dedup")
+
+      ::JobLogger.info("Finished Job: icecat:catalog:weekly_full_update")
       ::JobLogger.info("=" * 50)
     end
   end
