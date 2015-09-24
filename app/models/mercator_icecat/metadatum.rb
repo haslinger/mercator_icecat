@@ -196,6 +196,8 @@ module MercatorIcecat
         # icecat_presentation_value = feature.xpath("Presentation_Value") # not used here
         icecat_feature_id = feature.xpath("Feature")[0]["ID"].to_i
         icecat_value = feature["Value"]
+        icecat_value = "." if icecat_value.empty?
+
         icecat_feature_group_id = feature["CategoryFeatureGroup_ID"]
 
         name_en = try_to { feature.xpath("Feature/Name[@langid='1']")[0]["Value"] }
