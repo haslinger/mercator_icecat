@@ -249,11 +249,8 @@ module MercatorIcecat
           value.unit_en = try_to { unit_en }
         end
 
-        begin
-          value.save or ::JobLogger.error("Value could not be saved:" + value.errors.first)
-        rescue
-          ::JobLogger.error("Value could not be saved:" + value.errors.first + " for product " + product.id.to_s)
-        end
+        value.save \
+        or ::JobLogger.error("Value could not be saved:" + value.errors.first.to_s + " for product " + product.id.to_s)
       end
     end
 
