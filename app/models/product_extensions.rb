@@ -52,7 +52,7 @@ module ProductExtensions
   end
 
 
-  def update_from_icecat(from_today: true)
+  def update_from_icecat(from_today: true, initial_import: false)
     @metadatum = MercatorIcecat::Metadatum.find_by_prod_id(self.icecat_article_number)
     return unless @metadatum
 
@@ -63,7 +63,8 @@ module ProductExtensions
 #    puts "Download " + number + " from Icecat."
     @metadatum.download(overwrite: true)
 #    puts "Updating product relations."
-    @metadatum.update_product(product: self)
+    @metadatum.update_product(product: self,
+                              initial_import: initial_import)
 #    puts "Updating product."
     @metadatum.update_product_relations(product: self)
 

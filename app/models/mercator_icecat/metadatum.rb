@@ -141,7 +141,7 @@ module MercatorIcecat
     end
 
 
-    def update_product(product: nil)
+    def update_product(product: nil, initial_import: false)
       # :en => lang_id = 1, :de => lang_id = 4
       begin
         file = open(Rails.root.join("vendor","xml",icecat_product_id.to_s + ".xml")).read
@@ -163,12 +163,15 @@ module MercatorIcecat
 
       product.update(# title_de: product_nodeset["Title"],
                      # title_en: product_nodeset["Title"],
-                     description_de: description_de,
-                     description_en: description_en,
                      long_description_de: long_description_de,
                      long_description_en: long_description_en,
                      warranty_de: warranty_de,
                      warranty_en: warranty_en)
+
+      if initial_import == true
+        product.update(description_de: description_de,
+                       description_en: description_en)
+      end
 
       property_groups_nodeset = product_nodeset.xpath("CategoryFeatureGroup")
       property_groups_nodeset.each do |property_group_nodeset|
