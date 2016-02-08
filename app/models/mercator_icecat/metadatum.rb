@@ -19,13 +19,13 @@ module MercatorIcecat
       product_number    :string
       cat_id            :string
       on_market         :string
-      model_name        :string
+      icecat_model_name :string
       product_view      :string
       timestamps
     end
 
     attr_accessible :path, :cat_id, :product_id, :icecat_updated_at, :quality, :supplier_id,
-                    :prod_id, :on_market, :model_name, :product_view, :icecat_product_id,
+                    :prod_id, :on_market, :icecat_model_name, :product_view, :icecat_product_id,
                     :product_number, :updated_at
 
     belongs_to :product, :class_name => "Product"
@@ -67,7 +67,7 @@ module MercatorIcecat
       parser.for_tag("file").with_attribute("Supplier_id", "1").each do |product|
         metadatum = self.find_or_create_by(icecat_product_id: product["Product_ID"])
 
-        model_name = product["Model_Name"] if product["Model_Name"].present?
+        icecat_model_name = product["Model_Name"] if product["Model_Name"].present?
         metadatum.update(path:              product["path"],
                          cat_id:            product["Catid"],
                          icecat_product_id: product["Product_ID"],
@@ -76,7 +76,7 @@ module MercatorIcecat
                          supplier_id:       product["Supplier_id"],
                          prod_id:           product["Prod_ID"],
                          on_market:         product["On_Market"],
-                         model_name:        model_name,
+                         icecat_model_name: icecat_model_name,
                          product_view:      product["Product_View"]) \
         or ::JobLogger.error("Metadatum " + product["Prod_ID"].to_s + " could not be saved: " + metadatum.errors.first )
       end

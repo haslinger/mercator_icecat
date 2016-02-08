@@ -9,7 +9,7 @@
 <def tag="form" for="MercatorIcecat::Metadatum">
   <form merge param="default">
     <error-messages param/>
-    <field-list fields="path, icecat_updated_at, quality, product_number, on_market, model_name, product_view, product" param/>
+    <field-list fields="path, icecat_updated_at, quality, product_number, on_market, icecat_model_name, product_view, product" param/>
     <div param="actions">
       <submit label="#{ht 'mercator_icecat/metadatum.actions.save', :default=>['Save']}" param/><or-cancel param="cancel"/>
     </div>
@@ -90,7 +90,7 @@
     </content-header:>
 
     <content-body: param>
-      <field-list fields="path, icecat_updated_at, quality, product_number, on_market, model_name, product_view, product" param/>
+      <field-list fields="path, icecat_updated_at, quality, product_number, on_market, icecat_model_name, product_view, product" param/>
     </content-body:>
 
   </page>

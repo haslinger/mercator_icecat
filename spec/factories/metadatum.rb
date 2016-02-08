@@ -11,7 +11,7 @@ FactoryGirl.define do
     product_number    "255 G2"
     cat_id            151
     on_market         1
-    model_name        "255 G2"
+    icecat_model_name "255 G2"
     product_view      132
     product
   end
